@@ -14,6 +14,11 @@ const createTicketSchema = z.object({
     priority: z.enum(['low', 'medium', 'high', 'urgent']),
     description: z.string().min(10, 'Description must be at least 10 characters'),
     requires_spend: z.boolean().optional(),
+    initial_comment: z.string().optional(),
+    attachments: z.array(z.object({
+        url: z.string().url(),
+        kind: z.enum(['image', 'video', 'invoice'])
+    })).optional(),
 })
 
 export async function createTicket(data: z.infer<typeof createTicketSchema>) {
@@ -34,6 +39,9 @@ export async function createTicket(data: z.infer<typeof createTicketSchema>) {
         .from('tickets')
         .insert({
             ...validated.data,
+            // Remove initial_comment and attachments from ticket data
+            initial_comment: undefined,
+            attachments: undefined,
             unit_id: validated.data.unit_id || null,
             created_by: user.id,
             requires_spend: validated.data.requires_spend || false,
@@ -60,6 +68,42 @@ export async function createTicket(data: z.infer<typeof createTicketSchema>) {
 
     if ((ticket as any).priority === 'urgent') {
         await sendUrgentTicketNotification(ticket as any)
+    }
+
+    // Add initial comment if present
+    if (validated.data.initial_comment && validated.data.initial_comment.trim().length > 0) {
+        // Append attachment links to comment body
+        let commentBody = validated.data.initial_comment.trim()
+
+        if (validated.data.attachments && validated.data.attachments.length > 0) {
+            commentBody += '\n\n'
+            validated.data.attachments.forEach(att => {
+                if (att.kind === 'image') {
+                    commentBody += `![Image](${att.url})\n`
+                } else if (att.kind === 'video') {
+                    // For videos we can use a link or custom syntax if we have a player
+                    commentBody += `[Video](${att.url})\n`
+                }
+            })
+        }
+
+        await supabase.from('ticket_comments').insert({
+            ticket_id: (ticket as any).id,
+            author_id: user.id,
+            body: commentBody,
+        } as any)
+    }
+
+    // Save attachments to database
+    if (validated.data.attachments && validated.data.attachments.length > 0) {
+        const attachmentInserts = validated.data.attachments.map(att => ({
+            ticket_id: (ticket as any).id,
+            url: att.url,
+            kind: att.kind,
+            uploaded_by: user.id
+        }))
+
+        await supabase.from('ticket_attachments').insert(attachmentInserts as any)
     }
 
     revalidatePath('/dashboard')

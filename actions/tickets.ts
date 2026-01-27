@@ -1,6 +1,7 @@
 'use server'
 
 import { createClient } from '@/lib/supabase/server'
+import { createServiceClient as createAdminClient } from '@/lib/supabase/service'
 import { getCurrentUser } from '@/lib/rbac'
 import { revalidatePath } from 'next/cache'
 import type { Database } from '@/types/database'
@@ -12,6 +13,7 @@ type Profile = Database['public']['Tables']['profiles']['Row']
 type TicketUpdate = Database['public']['Tables']['tickets']['Update']
 type TicketStatus = Database['public']['Enums']['ticket_status']
 
+
 export interface TicketWithDetails extends Ticket {
     property: Property
     unit: Unit | null
@@ -21,25 +23,32 @@ export interface TicketWithDetails extends Ticket {
 
 export interface TicketFilters {
     search?: string
-    property_id?: string
+    property_id?: string[]
     unit_id?: string
-    category?: string
-    priority?: string
-    status?: string
-    assigned_to?: string
+    category?: string[]
+    priority?: string[]
+    status?: string[]
+    assigned_to?: string[]
     urgent_only?: boolean
+    type?: ('corrective' | 'preventive')[]
 }
 
 /**
  * Get paginated and filtered tickets based on user role
  */
-export async function getTickets(filters: TicketFilters = {}, page = 1, limit = 20) {
+export async function getTickets(filters: TicketFilters = {}, page = 1, pageSize = 20) {
     const supabase = await createClient()
     const user = await getCurrentUser()
 
     if (!user) {
         return { data: null, error: 'Not authenticated' }
     }
+
+    // Default to only corrective tickets if not specified
+    // But allow empty array to mean "all" if explicitly desired, though typically we want default behavior.
+    // For now, let's say if filters.type is undefined, we show corrective.
+    // If user wants all, they can pass both.
+    const typeFilter = filters.type || ['corrective']
 
     let query = supabase
         .from('tickets')
@@ -50,34 +59,35 @@ export async function getTickets(filters: TicketFilters = {}, page = 1, limit = 
       assigned_to:profiles!tickets_assigned_to_user_id_fkey(id, full_name),
       created_by_profile:profiles!tickets_created_by_fkey(id, full_name)
     `, { count: 'exact' })
+        .in('type', typeFilter)
 
     // Apply filters
     if (filters.search) {
         query = query.or(`description.ilike.%${filters.search}%,property.name.ilike.%${filters.search}%`)
     }
 
-    if (filters.property_id) {
-        query = query.eq('property_id', filters.property_id)
+    if (filters.property_id?.length) {
+        query = query.in('property_id', filters.property_id)
     }
 
     if (filters.unit_id) {
         query = query.eq('unit_id', filters.unit_id)
     }
 
-    if (filters.category) {
-        query = query.eq('category', filters.category)
+    if (filters.category?.length) {
+        query = query.in('category', filters.category)
     }
 
-    if (filters.priority) {
-        query = query.eq('priority', filters.priority)
+    if (filters.priority?.length) {
+        query = query.in('priority', filters.priority)
     }
 
-    if (filters.status) {
-        query = query.eq('status', filters.status)
+    if (filters.status?.length) {
+        query = query.in('status', filters.status)
     }
 
-    if (filters.assigned_to) {
-        query = query.eq('assigned_to_user_id', filters.assigned_to)
+    if (filters.assigned_to?.length) {
+        query = query.in('assigned_to_user_id', filters.assigned_to)
     }
 
     if (filters.urgent_only) {
@@ -90,8 +100,8 @@ export async function getTickets(filters: TicketFilters = {}, page = 1, limit = 
     // Reporter: see own
 
     // Pagination
-    const from = (page - 1) * limit
-    const to = from + limit - 1
+    const from = (page - 1) * pageSize
+    const to = from + pageSize - 1
 
     const { data, error, count } = await query
         .order('created_at', { ascending: false })
@@ -107,8 +117,8 @@ export async function getTickets(filters: TicketFilters = {}, page = 1, limit = 
         data: data || [],
         count: count || 0,
         page,
-        limit,
-        totalPages: Math.ceil((count || 0) / limit),
+        limit: pageSize,
+        totalPages: Math.ceil((count || 0) / pageSize),
     }
 }
 
@@ -134,14 +144,17 @@ export async function updateTicketStatus(ticketId: string, status: TicketStatus)
         return { error: error.message }
     }
 
-    // Create audit log
-    await (supabase.from('ticket_audit_logs') as any).insert({
+    const { error: auditError } = await (supabase.from('ticket_audit_logs') as any).insert({
         ticket_id: ticketId,
         actor_id: user.id,
         action: 'status_changed',
         from_value: null, // TODO: Get old value
         to_value: { status },
     })
+
+    if (auditError) {
+        console.error('Error inserting audit log (status):', auditError)
+    }
 
     revalidatePath('/dashboard')
     revalidatePath(`/tickets/${ticketId}`)
@@ -179,17 +192,72 @@ export async function assignTicket(ticketId: string, userId: string | null) {
         return { error: error.message }
     }
 
-    // Create audit log
-    await (supabase.from('ticket_audit_logs') as any).insert({
+    // Get assignee name for audit log
+    let assigneeName = 'Unknown'
+    if (userId) {
+        const { data: assignee } = await supabase.from('profiles').select('full_name').eq('id', userId).single()
+        if (assignee) assigneeName = (assignee as any).full_name
+    }
+
+    const { error: auditError } = await (supabase.from('ticket_audit_logs') as any).insert({
         ticket_id: ticketId,
         actor_id: user.id,
         action: 'assigned',
         from_value: null,
-        to_value: { assigned_to_user_id: userId },
+        to_value: { assigned_to_user_id: userId, assigned_to_name: assigneeName },
     })
+
+    if (auditError) {
+        console.error('Error inserting audit log (assignment):', auditError)
+    }
 
     revalidatePath('/dashboard')
     revalidatePath(`/tickets/${ticketId}`)
+
+    // Webhook Notification
+    if (userId) {
+        // We fire and forget this to not block the UI response, 
+        // but since Vercel/Serverless lambda functions might freeze execution after response,
+        // it is safer to await it or use `waitUntil` (if available in Next.js/platform).
+        // For standard server actions, awaiting is safer to ensure delivery.
+        try {
+            // Fetch assignee for telegram id
+            const { data: assignee } = await (supabase
+                .from('profiles') as any)
+                .select('telegram_chat_id')
+                .eq('id', userId)
+                .single()
+
+            if (assignee?.telegram_chat_id) {
+                // Fetch ticket details if not available (we only have ID)
+                // We deliberately fetch fresh data to be accurate
+                const { data: ticket } = await (supabase
+                    .from('tickets') as any)
+                    .select('category, description')
+                    .eq('id', ticketId)
+                    .single()
+
+                if (ticket) {
+                    const payload = {
+                        ticket_id: ticketId,
+                        assigned_by: (user as any).profile?.full_name || 'System',
+                        category: ticket.category,
+                        description: ticket.description,
+                        user_telegram_chat_id: assignee.telegram_chat_id
+                    }
+
+                    await fetch('https://n8n.namba.studio/webhook-test/notificar-ticket-asignado', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    })
+                }
+            }
+        } catch (err) {
+            console.error('Failed to trigger assignment  webhook:', err)
+            // We ignore webhook errors to not fail the assignment itself
+        }
+    }
 
     return { data }
 }
@@ -217,6 +285,19 @@ export async function addQuickNote(ticketId: string, note: string) {
 
     if (error) {
         return { error: error.message }
+    }
+
+    // Audit Log for Comment
+    const { error: auditError } = await (supabase.from('ticket_audit_logs') as any).insert({
+        ticket_id: ticketId,
+        actor_id: user.id,
+        action: 'comment_added',
+        from_value: null,
+        to_value: { body: note },
+    })
+
+    if (auditError) {
+        console.error('Error inserting audit log (comment):', auditError)
     }
 
     revalidatePath('/dashboard')
@@ -273,17 +354,55 @@ export async function updateTicket(ticketId: string, updates: TicketUpdate) {
     if (finalUpdates.description && finalUpdates.description !== oldTicket?.description) actions.push('description_changed')
 
     if (actions.length > 0) {
-        await (supabase.from('ticket_audit_logs') as any).insert({
+        // enrich finalUpdates with assignee name if assigned_to_changed
+        if (actions.includes('assigned_to_changed') && finalUpdates.assigned_to_user_id) {
+            const { data: assignee } = await supabase.from('profiles').select('full_name').eq('id', finalUpdates.assigned_to_user_id).single()
+            if (assignee) {
+                (finalUpdates as any).assigned_to_name = (assignee as any).full_name
+            }
+        }
+
+        const { error: auditError } = await (supabase.from('ticket_audit_logs') as any).insert({
             ticket_id: ticketId,
             actor_id: user.id,
             action: actions.join(', '),
             from_value: oldTicket,
             to_value: finalUpdates,
         })
+
+        if (auditError) {
+            console.error('Error inserting audit log (update):', auditError)
+        }
     }
 
     revalidatePath('/dashboard')
     revalidatePath(`/tickets/${ticketId}`)
 
     return { data }
+}
+
+/**
+ * Delete a ticket
+ */
+export async function deleteTicket(ticketId: string) {
+    const supabase = await createClient()
+    const user = await getCurrentUser()
+
+    if (!user) {
+        return { error: 'Not authenticated' }
+    }
+
+    const { error } = await supabase
+        .from('tickets')
+        .delete()
+        .eq('id', ticketId)
+
+    if (error) {
+        return { error: error.message }
+    }
+
+    revalidatePath('/dashboard')
+    revalidatePath('/tickets')
+
+    return { success: true }
 }

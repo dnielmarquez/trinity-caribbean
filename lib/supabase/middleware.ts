@@ -46,6 +46,43 @@ export async function updateSession(request: NextRequest) {
         return NextResponse.redirect(url)
     }
 
+    // Role-based access control for 'reporter'
+    if (user) {
+        // Fetch profile to get role
+        // Note: getUser() returns user metadata, but role is in 'profiles' table.
+        // We can't easily join in middleware without making another DB call.
+        // HOWEVER, efficient way is to check if we have role in metadata or make the call.
+        // Making a call in middleware adds latency but is secure.
+
+        const { data: profile } = await supabase
+            .from('profiles')
+            .select('role')
+            .eq('id', user.id)
+            .single()
+
+        const role = profile?.role
+
+        if (role === 'reporter') {
+            const path = request.nextUrl.pathname
+            const allowedPaths = ['/cleaning-check', '/logout', '/login']
+            const isAllowed = allowedPaths.some(p => path.startsWith(p))
+
+            if (!isAllowed && path !== '/') { // Allow root? or redirect root?
+                // Redirect to cleaning-check
+                const url = request.nextUrl.clone()
+                url.pathname = '/cleaning-check'
+                return NextResponse.redirect(url)
+            }
+
+            // If root, redirect to cleaning-check
+            if (path === '/') {
+                const url = request.nextUrl.clone()
+                url.pathname = '/cleaning-check'
+                return NextResponse.redirect(url)
+            }
+        }
+    }
+
     // IMPORTANT: You *must* return the supabaseResponse object as it is. If you're
     // creating a new response object with NextResponse.next() make sure to:
     // 1. Pass the request in it, like so:

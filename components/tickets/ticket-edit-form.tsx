@@ -30,6 +30,8 @@ export function TicketEditForm({ ticket, staff, isOpen, onClose }: TicketEditFor
     const [category, setCategory] = useState(ticket.category)
     const [assignedTo, setAssignedTo] = useState(ticket.assigned_to_user_id || '')
 
+
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault()
         setIsLoading(true)
@@ -132,7 +134,9 @@ export function TicketEditForm({ ticket, staff, isOpen, onClose }: TicketEditFor
                     </div>
                 </div>
 
-                <div className="flex justify-end gap-3 pt-4">
+
+
+                <div className="flex justify-end gap-3 pt-4 border-t border-gray-200 dark:border-gray-700">
                     <Button type="button" variant="outline" onClick={onClose} disabled={isLoading}>
                         Cancel
                     </Button>

@@ -1,6 +1,4 @@
 import { getCurrentUser, hasPermission } from '@/lib/rbac'
-import { StatusBadge } from '@/components/tickets/status-badge'
-import { PriorityBadge } from '@/components/tickets/priority-badge'
 import { getCategoryConfig } from '@/lib/categories'
 import { formatDate, calculateTicketAge } from '@/lib/date-utils'
 import Link from 'next/link'
@@ -10,6 +8,10 @@ import { getTickets } from '@/actions/tickets'
 import { getProperties } from '@/actions/properties'
 import { TicketFilterBar } from '@/components/tickets/ticket-filter-bar'
 import { TicketEditButton } from '@/components/tickets/ticket-edit-button'
+import { InlineStatusSelect } from '@/components/tickets/inline-status-select'
+import { InlinePrioritySelect } from '@/components/tickets/inline-priority-select'
+import { InlineAssigneeSelect } from '@/components/tickets/inline-assignee-select'
+import { DeleteTicketButton } from '@/components/tickets/delete-ticket-button'
 import { createClient } from '@/lib/supabase/server'
 
 interface TicketsPageProps {
@@ -19,6 +21,7 @@ interface TicketsPageProps {
         category?: string
         status?: string
         priority?: string
+        assigned_to?: string
         page?: string
     }>
 }
@@ -29,12 +32,19 @@ export default async function TicketsPage({ searchParams }: TicketsPageProps) {
     const canEdit = await hasPermission('canUpdateTickets')
     const supabase = await createClient()
 
+    const splitParam = (param: string | string[] | undefined) => {
+        if (!param) return undefined
+        if (Array.isArray(param)) return param
+        return param.split(',').filter(Boolean)
+    }
+
     const filters = {
-        search: params.search,
-        property_id: params.property_id,
-        category: params.category,
-        status: params.status,
-        priority: params.priority,
+        search: typeof params.search === 'string' ? params.search : undefined,
+        property_id: splitParam(params.property_id),
+        category: splitParam(params.category),
+        status: splitParam(params.status),
+        priority: splitParam(params.priority),
+        assigned_to: splitParam(params.assigned_to),
     }
 
     const page = params.page ? parseInt(params.page) : 1
@@ -45,7 +55,7 @@ export default async function TicketsPage({ searchParams }: TicketsPageProps) {
     // Fetch properties for the filter bar
     const { data: properties } = await getProperties()
 
-    // Fetch staff list for the edit button
+    // Fetch staff list for the edit button and inline assign
     const { data: staff } = await supabase
         .from('profiles')
         .select('id, full_name, role')
@@ -53,7 +63,7 @@ export default async function TicketsPage({ searchParams }: TicketsPageProps) {
         .order('full_name')
 
     return (
-        <div className="p-6 space-y-6">
+        <div className="p-4 md:p-6 space-y-6">
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                 <div>
                     <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
@@ -72,7 +82,7 @@ export default async function TicketsPage({ searchParams }: TicketsPageProps) {
             </div>
 
             {/* Filter Bar */}
-            <TicketFilterBar properties={properties || []} />
+            <TicketFilterBar properties={properties || []} staff={staff || []} />
 
             <div className="bg-white dark:bg-gray-800 rounded-lg shadow overflow-hidden">
                 <div className="overflow-x-auto">
@@ -84,6 +94,9 @@ export default async function TicketsPage({ searchParams }: TicketsPageProps) {
                                 </th>
                                 <th className="text-left py-3 px-4 text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                                     Property
+                                </th>
+                                <th className="text-left py-3 px-4 text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                                    Assigned To
                                 </th>
                                 <th className="text-left py-3 px-4 text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                                     Status
@@ -109,12 +122,12 @@ export default async function TicketsPage({ searchParams }: TicketsPageProps) {
                                     return (
                                         <tr key={ticket.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors">
                                             <td className="py-3 px-4">
-                                                <div className="flex items-start gap-3">
+                                                <div className="flex items-start gap-3 max-w-[320px]">
                                                     <div className={`p-2 rounded-lg ${categoryConfig.color.replace('text-', 'bg-').replace('600', '100')} dark:bg-gray-700`}>
                                                         <CategoryIcon className={`w-5 h-5 ${categoryConfig.color}`} />
                                                     </div>
-                                                    <div>
-                                                        <p className="font-medium text-gray-900 dark:text-white line-clamp-1">
+                                                    <div className="min-w-0 flex-1">
+                                                        <p className="font-medium text-gray-900 dark:text-white line-clamp-1 break-all">
                                                             {ticket.description}
                                                         </p>
                                                         <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
@@ -132,10 +145,26 @@ export default async function TicketsPage({ searchParams }: TicketsPageProps) {
                                                 </p>
                                             </td>
                                             <td className="py-3 px-4">
-                                                <StatusBadge status={ticket.status} />
+                                                <InlineAssigneeSelect
+                                                    ticketId={ticket.id}
+                                                    assignedTo={ticket.assigned_to}
+                                                    staff={(staff || []) as any}
+                                                    canEdit={canEdit}
+                                                />
                                             </td>
                                             <td className="py-3 px-4">
-                                                <PriorityBadge priority={ticket.priority} />
+                                                <InlineStatusSelect
+                                                    ticketId={ticket.id}
+                                                    status={ticket.status}
+                                                    canEdit={canEdit}
+                                                />
+                                            </td>
+                                            <td className="py-3 px-4">
+                                                <InlinePrioritySelect
+                                                    ticketId={ticket.id}
+                                                    priority={ticket.priority}
+                                                    canEdit={canEdit}
+                                                />
                                             </td>
                                             <td className="py-3 px-4">
                                                 <div className="flex flex-col">
@@ -149,10 +178,10 @@ export default async function TicketsPage({ searchParams }: TicketsPageProps) {
                                             </td>
                                             <td className="py-3 px-4">
                                                 <div className="flex items-center justify-end gap-2">
-                                                    <Link href={`/tickets/${ticket.id}`}>
-                                                        <Button variant="outline" size="sm">
-                                                            <Eye className="w-4 h-4 mr-2" />
-                                                            View
+                                                    <Link href={`/tickets/${ticket.id}`} title="View Ticket">
+                                                        <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                                                            <Eye className="w-4 h-4" />
+                                                            <span className="sr-only">View</span>
                                                         </Button>
                                                     </Link>
                                                     {canEdit && staff && (
@@ -160,6 +189,9 @@ export default async function TicketsPage({ searchParams }: TicketsPageProps) {
                                                             ticket={ticket}
                                                             staff={staff as any}
                                                         />
+                                                    )}
+                                                    {canEdit && (
+                                                        <DeleteTicketButton ticketId={ticket.id} />
                                                     )}
                                                 </div>
                                             </td>

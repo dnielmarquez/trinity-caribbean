@@ -4,11 +4,25 @@ import { differenceInHours, subDays } from 'date-fns'
 import { calculateAverageResolutionTime } from '@/lib/date-utils'
 import type { Database } from '@/types/database'
 
+function UrgentIndicator() {
+    return (
+        <span className="relative flex h-3 w-3">
+            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+            <span className="relative inline-flex rounded-full h-3 w-3 bg-red-500"></span>
+        </span>
+    )
+}
+
 type Property = Database['public']['Tables']['properties']['Row']
 type Unit = Database['public']['Tables']['units']['Row']
 type Ticket = Database['public']['Tables']['tickets']['Row']
 type Block = Database['public']['Tables']['property_blocks']['Row']
 type Profile = Database['public']['Tables']['profiles']['Row']
+type TicketCost = Database['public']['Tables']['ticket_costs']['Row']
+
+interface TicketWithCosts extends Ticket {
+    ticket_costs: TicketCost[]
+}
 
 interface PropertyWithUnits extends Property {
     units: Unit[]
@@ -43,10 +57,10 @@ export default async function PropertyDetailPage({ params }: PageProps) {
     const thirtyDaysAgo = subDays(new Date(), 30).toISOString()
     const { data: tickets } = await supabase
         .from('tickets')
-        .select('*')
+        .select('*, ticket_costs(*)')
         .eq('property_id', id)
         .gte('created_at', thirtyDaysAgo)
-        .returns<Ticket[]>()
+        .returns<TicketWithCosts[]>()
 
     // Get current blocks
     const { data: blocks } = await supabase
@@ -57,10 +71,31 @@ export default async function PropertyDetailPage({ params }: PageProps) {
         .is('unblocked_at', null)
         .returns<BlockWithDetails[]>()
 
+    // Get ALL active urgent tickets for this property to flag units
+    // (Active = reported, assigned, in_progress)
+    const { data: activeUrgentTickets } = await supabase
+        .from('tickets')
+        .select('unit_id')
+        .eq('property_id', id)
+        .eq('priority', 'urgent')
+        .in('status', ['reported', 'assigned', 'in_progress'])
+        .returns<{ unit_id: string | null }[]>()
+
+    const urgentUnitIds = new Set(activeUrgentTickets?.map(t => t.unit_id).filter(Boolean))
+
     // Calculate stats
     const openTickets = tickets?.filter((t) => ['reported', 'assigned', 'in_progress'].includes(t.status)).length || 0
     const urgentTickets = tickets?.filter((t) => t.priority === 'urgent').length || 0
     const avgResolutionTime = calculateAverageResolutionTime(tickets || [])
+
+    const totalCost = tickets?.reduce((acc, ticket) => {
+        const cost = ticket.ticket_costs?.[0]?.total_amount || 0
+        return acc + cost
+    }, 0) || 0
+    // Calculate average only if there are tickets, regardless of whether they have costs (avg cost per ticket)
+    // Or should it be avg cost of tickets that HAVE costs? 
+    // Usually "Average Maintenance Cost" is total spend / total tickets.
+    const avgCost = tickets?.length ? (totalCost / tickets.length).toFixed(2) : '0.00'
 
     // Most frequent category
     const categoryCount: Record<string, number> = {}
@@ -82,7 +117,7 @@ export default async function PropertyDetailPage({ params }: PageProps) {
             </div>
 
             {/* Stats Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
                 <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow">
                     <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Open Tickets</p>
                     <p className="text-3xl font-bold text-blue-600 mt-2">{openTickets}</p>
@@ -98,6 +133,10 @@ export default async function PropertyDetailPage({ params }: PageProps) {
                 <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow">
                     <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Total (30d)</p>
                     <p className="text-3xl font-bold text-gray-900 dark:text-white mt-2">{tickets?.length || 0}</p>
+                </div>
+                <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow">
+                    <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Avg Cost (30d)</p>
+                    <p className="text-3xl font-bold text-orange-600 mt-2">${avgCost}</p>
                 </div>
             </div>
 
@@ -162,9 +201,16 @@ export default async function PropertyDetailPage({ params }: PageProps) {
                             {property.units.map((unit) => (
                                 <div
                                     key={unit.id}
-                                    className="border border-gray-200 dark:border-gray-700 rounded-lg p-4"
+                                    className="border border-gray-200 dark:border-gray-700 rounded-lg p-4 relative"
                                 >
-                                    <p className="font-medium text-gray-900 dark:text-white">{unit.name}</p>
+                                    <div className="flex justify-between items-start">
+                                        <p className="font-medium text-gray-900 dark:text-white">{unit.name}</p>
+                                        {urgentUnitIds.has(unit.id) && (
+                                            <div title="Active Urgent Task">
+                                                <UrgentIndicator />
+                                            </div>
+                                        )}
+                                    </div>
                                     {unit.notes && (
                                         <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">{unit.notes}</p>
                                     )}

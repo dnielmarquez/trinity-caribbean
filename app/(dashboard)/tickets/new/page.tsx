@@ -1,6 +1,8 @@
 'use client'
 
+
 import { createTicket } from '@/actions/create-ticket'
+import { FileUploadButton } from '@/components/ui/file-upload-button'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { getCategoryConfig, type TicketCategory } from '@/lib/categories'
@@ -24,7 +26,8 @@ export default function NewTicketPage() {
         category: '' as TicketCategory | '',
         priority: 'medium' as 'low' | 'medium' | 'high' | 'urgent',
         description: '',
-        requires_spend: false,
+        initial_comment: '',
+        attachments: [] as { url: string; kind: 'image' | 'video' | 'invoice' }[]
     })
 
     // Load properties
@@ -90,6 +93,7 @@ export default function NewTicketPage() {
             ...formData,
             category: formData.category as any,
             unit_id: formData.unit_id || null,
+            attachments: formData.attachments.map(a => ({ url: a.url, kind: a.kind as any }))
         })
 
         if (result.error) {
@@ -99,6 +103,13 @@ export default function NewTicketPage() {
             toast.success('Ticket created successfully!')
             router.push(`/tickets/${(result.data as any)!.id}`)
         }
+    }
+
+    const handleUploadComplete = (url: string, kind: 'image' | 'video') => {
+        setFormData(prev => ({
+            ...prev,
+            attachments: [...prev.attachments, { url, kind: kind as any }]
+        }))
     }
 
     return (
@@ -232,6 +243,46 @@ export default function NewTicketPage() {
                     />
                 </div>
 
+                {/* Initial Comment */}
+                <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                        Initial Comment & Evidence (optional)
+                    </label>
+                    <div className="space-y-3">
+                        <textarea
+                            value={formData.initial_comment}
+                            onChange={(e) => setFormData({ ...formData, initial_comment: e.target.value })}
+                            rows={2}
+                            placeholder="Add any additional details or notes..."
+                            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md dark:bg-gray-700 dark:text-white"
+                        />
+
+                        <div className="flex flex-wrap gap-2 items-center">
+                            <FileUploadButton
+                                onUploadComplete={handleUploadComplete}
+                                variant="outline"
+                                size="sm"
+                            />
+                            {formData.attachments.map((att, i) => (
+                                <div key={i} className="relative group w-16 h-16 border rounded bg-gray-100 overflow-hidden">
+                                    {att.kind === 'image' ? (
+                                        <img src={att.url} alt="Attachment" className="w-full h-full object-cover" />
+                                    ) : (
+                                        <div className="w-full h-full flex items-center justify-center text-xs">Video</div>
+                                    )}
+                                    <button
+                                        type="button"
+                                        onClick={() => setFormData(prev => ({ ...prev, attachments: prev.attachments.filter((_, idx) => idx !== i) }))}
+                                        className="absolute top-0 right-0 bg-red-500 text-white w-4 h-4 rounded-full flex items-center justify-center text-[10px] opacity-0 group-hover:opacity-100 transition-opacity"
+                                    >
+                                        ×
+                                    </button>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                </div>
+
                 {/* Priority */}
                 <div>
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
@@ -268,19 +319,7 @@ export default function NewTicketPage() {
                 </div>
 
                 {/* Requires Spend */}
-                <div>
-                    <label className="flex items-center">
-                        <input
-                            type="checkbox"
-                            checked={formData.requires_spend}
-                            onChange={(e) => setFormData({ ...formData, requires_spend: e.target.checked })}
-                            className="mr-2"
-                        />
-                        <span className="text-sm text-gray-700 dark:text-gray-300">
-                            This issue may require spending/purchases
-                        </span>
-                    </label>
-                </div>
+
 
                 {/* Submit */}
                 <div className="flex gap-3">

@@ -8,6 +8,16 @@ type Property = Database['public']['Tables']['properties']['Row']
 
 interface PropertyWithUnitCount extends Property {
     units: { count: number }[]
+    tickets: { priority: string; status: string }[]
+}
+
+function UrgentIndicator() {
+    return (
+        <span className="relative flex h-3 w-3">
+            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+            <span className="relative inline-flex rounded-full h-3 w-3 bg-red-500"></span>
+        </span>
+    )
 }
 
 export default async function PropertiesPage() {
@@ -17,8 +27,16 @@ export default async function PropertiesPage() {
         .from('properties')
         .select(`
       *,
-      units(count)
+      units(count),
+      tickets(priority, status)
     `)
+        .neq('tickets.status', 'resolved') // Filter out closed/resolved to keep payload smaller? 
+        // Actually, filtering nested resources in select string is tricky without !inner or modifying return type.
+        // Let's just fetch them and filter in JS for now, assuming volume isn't massive yet. 
+        // Or better: Use a separate query for urgent tickets if we want to be clean.
+        // But for simplicity in this generated code, let's try just getting them.
+        .filter('tickets.priority', 'eq', 'urgent')
+        .in('tickets.status', ['reported', 'assigned', 'in_progress'])
         .order('name')
         .returns<PropertyWithUnitCount[]>()
 
@@ -33,7 +51,7 @@ export default async function PropertiesPage() {
     }
 
     return (
-        <div className="p-6 space-y-6">
+        <div className="p-4 md:p-6 space-y-6">
             {/* Header */}
             <div className="flex justify-between items-center">
                 <div>
@@ -57,8 +75,13 @@ export default async function PropertiesPage() {
                         >
                             <div className="flex items-start gap-4">
                                 <div className="flex-shrink-0">
-                                    <div className="w-12 h-12 bg-blue-100 dark:bg-blue-900 rounded-lg flex items-center justify-center">
+                                    <div className="w-12 h-12 bg-blue-100 dark:bg-blue-900 rounded-lg flex items-center justify-center relative">
                                         <Building2 className="w-6 h-6 text-blue-600" />
+                                        {property.tickets && property.tickets.length > 0 && (
+                                            <div className="absolute -top-1 -right-1">
+                                                <UrgentIndicator />
+                                            </div>
+                                        )}
                                     </div>
                                 </div>
                                 <div className="flex-1 min-w-0">

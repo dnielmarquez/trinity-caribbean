@@ -20,13 +20,14 @@ export function TicketEditButton({ ticket, staff }: TicketEditButtonProps) {
     return (
         <>
             <Button
-                variant="outline"
+                variant="ghost"
                 size="sm"
                 onClick={() => setIsOpen(true)}
-                className="flex items-center gap-2"
+                className="h-8 w-8 p-0"
+                title="Edit Ticket"
             >
-                <Pencil size={14} />
-                Edit Ticket
+                <Pencil size={16} />
+                <span className="sr-only">Edit Ticket</span>
             </Button>
 
             <TicketEditForm

@@ -14,6 +14,7 @@ export type Database = {
                     id: string
                     full_name: string
                     role: 'reporter' | 'maintenance' | 'sub_director' | 'admin'
+                    telegram_chat_id: string | null
                     created_at: string
                     updated_at: string
                 }
@@ -21,6 +22,7 @@ export type Database = {
                     id: string
                     full_name: string
                     role?: 'reporter' | 'maintenance' | 'sub_director' | 'admin'
+                    telegram_chat_id?: string | null
                     created_at?: string
                     updated_at?: string
                 }
@@ -28,6 +30,7 @@ export type Database = {
                     id?: string
                     full_name?: string
                     role?: 'reporter' | 'maintenance' | 'sub_director' | 'admin'
+                    telegram_chat_id?: string | null
                     created_at?: string
                     updated_at?: string
                 }
@@ -216,6 +219,35 @@ export type Database = {
                     updated_by?: string
                 }
             }
+            ticket_expenses: {
+                Row: {
+                    id: string
+                    ticket_id: string
+                    description: string
+                    amount: number
+                    attachment_url: string | null
+                    created_at: string
+                    created_by: string
+                }
+                Insert: {
+                    id?: string
+                    ticket_id: string
+                    description: string
+                    amount: number
+                    attachment_url?: string | null
+                    created_at?: string
+                    created_by: string
+                }
+                Update: {
+                    id?: string
+                    ticket_id?: string
+                    description?: string
+                    amount?: number
+                    attachment_url?: string | null
+                    created_at?: string
+                    created_by?: string
+                }
+            }
             ticket_audit_logs: {
                 Row: {
                     id: string
@@ -282,6 +314,7 @@ export type Database = {
                     id: string
                     property_id: string
                     unit_id: string | null
+                    assigned_to_user_id: string | null
                     category: 'ac' | 'appliances' | 'plumbing' | 'wifi' | 'furniture' | 'locks' | 'electricity' | 'painting' | 'cleaning' | 'pest_control' | 'other'
                     description: string
                     recurrence_type: 'days' | 'weeks' | 'months'
@@ -297,6 +330,7 @@ export type Database = {
                     id?: string
                     property_id: string
                     unit_id?: string | null
+                    assigned_to_user_id?: string | null
                     category: 'ac' | 'appliances' | 'plumbing' | 'wifi' | 'furniture' | 'locks' | 'electricity' | 'painting' | 'cleaning' | 'pest_control' | 'other'
                     description: string
                     recurrence_type: 'days' | 'weeks' | 'months'
@@ -312,6 +346,7 @@ export type Database = {
                     id?: string
                     property_id?: string
                     unit_id?: string | null
+                    assigned_to_user_id?: string | null
                     category?: 'ac' | 'appliances' | 'plumbing' | 'wifi' | 'furniture' | 'locks' | 'electricity' | 'painting' | 'cleaning' | 'pest_control' | 'other'
                     description?: string
                     recurrence_type?: 'days' | 'weeks' | 'months'

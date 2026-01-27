@@ -1,4 +1,4 @@
-import { formatDistanceToNow, differenceInHours, differenceInDays } from 'date-fns'
+import { formatDistanceToNow, differenceInHours, differenceInDays, format } from 'date-fns'
 
 /**
  * Calculate the age/SLA of a ticket in a human-readable format
@@ -34,6 +34,15 @@ export function calculateTicketAge(createdAt: string): {
 export function formatDate(date: string | null | undefined): string {
     if (!date) return 'N/A'
     return formatDistanceToNow(new Date(date), { addSuffix: true })
+}
+
+/**
+ * Format a date for display (Exact Date & Time)
+ * e.g. "Oct 12, 2023 2:30 PM"
+ */
+export function formatDateTime(date: string | null | undefined): string {
+    if (!date) return 'N/A'
+    return format(new Date(date), 'PP p') // 'PP' = Oct 12, 2023, 'p' = 12:00 PM
 }
 
 /**

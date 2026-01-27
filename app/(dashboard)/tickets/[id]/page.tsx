@@ -10,6 +10,10 @@ import { ArrowLeft, Calendar, User, DollarSign } from 'lucide-react'
 import type { Database } from '@/types/database'
 import { TicketEditButton } from '@/components/tickets/ticket-edit-button'
 import { getCurrentUser, hasPermission } from '@/lib/rbac'
+import { CommentItem } from '@/components/tickets/comment-item'
+import { TimelineItem } from '@/components/tickets/timeline-item'
+import { TicketExpenses } from '@/components/tickets/ticket-expenses'
+import { TicketCommentForm } from '@/components/tickets/ticket-comment-form'
 
 type Ticket = Database['public']['Tables']['tickets']['Row']
 type Property = Database['public']['Tables']['properties']['Row']
@@ -38,6 +42,23 @@ interface LogWithActor extends AuditLog {
 interface PageProps {
     params: Promise<{ id: string }>
 }
+
+// Helper to create a timeline item from ticket data
+const createLogFromEvent = (
+    action: string,
+    date: string,
+    actor?: Pick<Profile, 'full_name' | 'role'> | null,
+    details?: any
+): LogWithActor => ({
+    id: `virtual-${action}-${date}`,
+    ticket_id: '',
+    actor_id: '',
+    action,
+    from_value: null,
+    to_value: details || null,
+    created_at: date,
+    actor: actor || null,
+})
 
 export default async function TicketDetailPage({ params }: PageProps) {
     const { id } = await params
@@ -70,8 +91,6 @@ export default async function TicketDetailPage({ params }: PageProps) {
         .order('full_name')
         .returns<Pick<Profile, 'id' | 'full_name' | 'role'>[]>()
 
-    // Get attachments... (same as before)
-
     // Get attachments
     const { data: attachments } = await supabase
         .from('ticket_attachments')
@@ -102,20 +121,42 @@ export default async function TicketDetailPage({ params }: PageProps) {
         .order('created_at', { ascending: false })
         .returns<LogWithActor[]>()
 
-    // Get costs
-    const { data: costs } = await supabase
-        .from('ticket_costs')
-        .select('*')
-        .eq('ticket_id', id)
-        .returns<TicketCost[]>()
-        .single()
+
 
     const categoryConfig = getCategoryConfig(ticket.category)
     const CategoryIcon = categoryConfig.icon
     const age = calculateTicketAge(ticket.created_at)
 
+    // Construct Unified Timeline
+    const timelineEvents: LogWithActor[] = [...(auditLogs || [])]
+
+    // Ensure "Created" event exists
+    const hasCreatedLog = timelineEvents.some(l => l.action === 'created')
+    if (!hasCreatedLog) {
+        timelineEvents.push(createLogFromEvent(
+            'created',
+            ticket.created_at,
+            ticket.created_by_profile
+        ))
+    }
+
+    // Ensure "Resolved" event exists if applicable
+    if (ticket.resolved_at) {
+        // Check if we already have a status change to 'resolved' around that time? 
+        // Or just blindly add it if missing? 
+        // The audit log for status change might be there, but explicit "resolved" marker is nice.
+        // Actually, status_change to 'resolved' should cover it. 
+        // But if legacy data, might be missing.
+        // Let's rely on audit logs for status changes, but if we want to be safe:
+        // formatting logic in TimelineItem handles 'status_changed'.
+        // Let's leave it to audit logs for now, unless missing.
+    }
+
+    // Sort descending
+    timelineEvents.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+
     return (
-        <div className="p-6 max-w-6xl mx-auto space-y-6">
+        <div className="p-4 md:p-6 max-w-6xl mx-auto space-y-6">
             {/* Header */}
             <div className="flex items-center gap-4">
                 <Link href="/dashboard">
@@ -211,24 +252,13 @@ export default async function TicketDetailPage({ params }: PageProps) {
                         <div className="space-y-4">
                             {comments && comments.length > 0 ? (
                                 comments.map((comment) => (
-                                    <div key={comment.id} className="border-l-2 border-blue-500 pl-4 py-2">
-                                        <div className="flex items-center gap-2 mb-1">
-                                            <span className="text-sm font-medium text-gray-900 dark:text-white">
-                                                {comment.author?.full_name}
-                                            </span>
-                                            <span className="text-xs text-gray-500 dark:text-gray-400">
-                                                {formatDate(comment.created_at)}
-                                            </span>
-                                        </div>
-                                        <p className="text-sm text-gray-700 dark:text-gray-300">
-                                            {comment.body}
-                                        </p>
-                                    </div>
+                                    <CommentItem key={comment.id} comment={comment} />
                                 ))
                             ) : (
                                 <p className="text-sm text-gray-500 dark:text-gray-400">No comments yet</p>
                             )}
                         </div>
+                        <TicketCommentForm ticketId={id} />
                     </div>
 
                     {/* Audit Timeline */}
@@ -237,24 +267,9 @@ export default async function TicketDetailPage({ params }: PageProps) {
                             Timeline
                         </h2>
                         <div className="space-y-4">
-                            {auditLogs && auditLogs.length > 0 ? (
-                                auditLogs.map((log) => (
-                                    <div key={log.id} className="flex gap-4">
-                                        <div className="w-2 h-2 mt-2 rounded-full bg-blue-500" />
-                                        <div className="flex-1">
-                                            <div className="flex items-center gap-2 mb-1">
-                                                <span className="text-sm font-medium text-gray-900 dark:text-white">
-                                                    {log.actor?.full_name}
-                                                </span>
-                                                <span className="text-xs text-gray-500 dark:text-gray-400">
-                                                    {log.action.replace('_', ' ')}
-                                                </span>
-                                                <span className="text-xs text-gray-400">
-                                                    {formatDate(log.created_at)}
-                                                </span>
-                                            </div>
-                                        </div>
-                                    </div>
+                            {timelineEvents.length > 0 ? (
+                                timelineEvents.map((log) => (
+                                    <TimelineItem key={log.id} log={log} />
                                 ))
                             ) : (
                                 <p className="text-sm text-gray-500 dark:text-gray-400">No activity yet</p>
@@ -267,20 +282,7 @@ export default async function TicketDetailPage({ params }: PageProps) {
                 <div className="space-y-6">
                     {/* Info Card */}
                     <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6 space-y-4">
-                        <div>
-                            <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400 mb-1">
-                                <Calendar className="w-4 h-4" />
-                                <span>Created</span>
-                            </div>
-                            <p className="text-sm font-medium text-gray-900 dark:text-white">
-                                {formatDate(ticket.created_at)}
-                            </p>
-                            <p className="text-xs text-gray-500 dark:text-gray-400">
-                                by {ticket.created_by_profile?.full_name}
-                            </p>
-                        </div>
-
-                        {ticket.assigned_to && (
+                        {ticket.assigned_to ? (
                             <div>
                                 <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400 mb-1">
                                     <User className="w-4 h-4" />
@@ -293,68 +295,22 @@ export default async function TicketDetailPage({ params }: PageProps) {
                                     {ticket.assigned_to.role}
                                 </p>
                             </div>
-                        )}
-
-                        {ticket.resolved_at && (
+                        ) : (
                             <div>
-                                <div className="text-sm text-gray-600 dark:text-gray-400 mb-1">
-                                    Resolved
+                                <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400 mb-1">
+                                    <User className="w-4 h-4" />
+                                    <span>Assigned to</span>
                                 </div>
-                                <p className="text-sm font-medium text-gray-900 dark:text-white">
-                                    {formatDate(ticket.resolved_at)}
+                                <p className="text-sm text-gray-500 dark:text-gray-400 italic">
+                                    Unassigned
                                 </p>
                             </div>
                         )}
-
-                        {ticket.closed_at && (
-                            <div>
-                                <div className="text-sm text-gray-600 dark:text-gray-400 mb-1">
-                                    Closed
-                                </div>
-                                <p className="text-sm font-medium text-gray-900 dark:text-white">
-                                    {formatDate(ticket.closed_at)}
-                                </p>
-                            </div>
-                        )}
+                        {/* Dates removed as they are now in the timeline */}
                     </div>
 
                     {/* Costs */}
-                    <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
-                        <div className="flex items-center gap-2 mb-4">
-                            <DollarSign className="w-5 h-5 text-green-600" />
-                            <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-                                Costs
-                            </h3>
-                        </div>
-                        {costs ? (
-                            <div className="space-y-2">
-                                <div className="flex justify-between text-sm">
-                                    <span className="text-gray-600 dark:text-gray-400">Labor</span>
-                                    <span className="font-medium text-gray-900 dark:text-white">
-                                        ${costs.labor_amount.toFixed(2)}
-                                    </span>
-                                </div>
-                                <div className="flex justify-between text-sm">
-                                    <span className="text-gray-600 dark:text-gray-400">Parts</span>
-                                    <span className="font-medium text-gray-900 dark:text-white">
-                                        ${costs.parts_amount.toFixed(2)}
-                                    </span>
-                                </div>
-                                <div className="border-t border-gray-200 dark:border-gray-700 pt-2 mt-2">
-                                    <div className="flex justify-between font-semibold">
-                                        <span className="text-gray-900 dark:text-white">Total</span>
-                                        <span className="text-green-600">
-                                            ${costs.total_amount.toFixed(2)}
-                                        </span>
-                                    </div>
-                                </div>
-                            </div>
-                        ) : (
-                            <p className="text-sm text-gray-500 dark:text-gray-400">
-                                No costs recorded yet
-                            </p>
-                        )}
-                    </div>
+                    <TicketExpenses ticketId={id} isEditable={canEdit} />
                 </div>
             </div>
         </div>
