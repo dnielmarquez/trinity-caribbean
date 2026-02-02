@@ -63,11 +63,57 @@ export async function createTicket(data: z.infer<typeof createTicketSchema>) {
         to_value: { status: 'reported' },
     } as any)
 
-    // Send notifications (placeholder)
-    await sendTicketCreatedNotification(ticket as any, user.profile)
-
     if ((ticket as any).priority === 'urgent') {
         await sendUrgentTicketNotification(ticket as any)
+    }
+
+    // Webhook for Ticket Creation (All priorities)
+    try {
+        const webhookUrl = process.env.N8N_TICKET_CREATED_WEBHOOK_URL
+        if (webhookUrl) {
+            const payload: any = {
+                ticket_id: (ticket as any).id,
+                created_by: (user as any).profile?.full_name || 'System', // Renamed from assigned_by
+                category: (ticket as any).category,
+                description: (ticket as any).description,
+                priority: (ticket as any).priority,
+                created_by_id: user.id
+            }
+
+            // Fetch Housekeeper (Always included)
+            const { data: housekeeper } = await (supabase
+                .from('profiles') as any)
+                .select('telegram_chat_id')
+                .eq('role', 'housekeeper')
+                .limit(1)
+                .single()
+
+            if (housekeeper?.telegram_chat_id) {
+                payload.housekeeper_telegram_chat_id = housekeeper.telegram_chat_id
+            }
+
+            // If Urgent, add Sub Director Chat ID
+            if ((ticket as any).priority === 'urgent') {
+                const { data: subDirector } = await (supabase
+                    .from('profiles') as any)
+                    .select('telegram_chat_id')
+                    .eq('role', 'sub_director')
+                    .limit(1)
+                    .single()
+
+                if (subDirector?.telegram_chat_id) {
+                    payload.sub_director_telegram_chat_id = subDirector.telegram_chat_id
+                }
+            }
+
+            await fetch(webhookUrl, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            })
+        }
+    } catch (err) {
+        console.error('Failed to trigger created webhook:', err)
     }
 
     // Add initial comment if present

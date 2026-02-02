@@ -36,6 +36,17 @@ export const ROLE_PERMISSIONS = {
         canManageProviders: false,
         canViewAnalytics: false,
     },
+    housekeeper: {
+        canViewAllTickets: true,
+        canCreateTickets: true,
+        canUpdateTickets: true,
+        canCloseTickets: false,
+        canManageUsers: false,
+        canManageProperties: false,
+        canBlockProperties: false, // Assuming false unless specified
+        canManageProviders: false,
+        canViewAnalytics: false,
+    },
     reporter: {
         canViewAllTickets: false, // Only own
         canCreateTickets: true,

@@ -13,7 +13,7 @@ export type Database = {
                 Row: {
                     id: string
                     full_name: string
-                    role: 'reporter' | 'maintenance' | 'sub_director' | 'admin'
+                    role: 'reporter' | 'maintenance' | 'housekeeper' | 'sub_director' | 'admin'
                     telegram_chat_id: string | null
                     created_at: string
                     updated_at: string

@@ -73,6 +73,7 @@ export default function Sidebar({ user, className, onNavigate }: SidebarProps) {
         admin: 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200',
         sub_director: 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200',
         maintenance: 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200',
+        housekeeper: 'bg-teal-100 text-teal-800 dark:bg-teal-900 dark:text-teal-200',
         reporter: 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200',
     }
 

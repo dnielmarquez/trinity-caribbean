@@ -233,24 +233,47 @@ export async function assignTicket(ticketId: string, userId: string | null) {
                 // We deliberately fetch fresh data to be accurate
                 const { data: ticket } = await (supabase
                     .from('tickets') as any)
-                    .select('category, description')
+                    .select('category, description, priority')
                     .eq('id', ticketId)
                     .single()
 
+
                 if (ticket) {
+                    let subDirectorChatId: string | undefined
+
+                    if (ticket.priority === 'urgent') {
+                        const { data: subDirector } = await (supabase
+                            .from('profiles') as any)
+                            .select('telegram_chat_id')
+                            .eq('role', 'sub_director')
+                            .limit(1)
+                            .single()
+
+                        if (subDirector?.telegram_chat_id) {
+                            subDirectorChatId = subDirector.telegram_chat_id
+                        }
+                    }
+
                     const payload = {
                         ticket_id: ticketId,
                         assigned_by: (user as any).profile?.full_name || 'System',
                         category: ticket.category,
                         description: ticket.description,
-                        user_telegram_chat_id: assignee.telegram_chat_id
+                        user_telegram_chat_id: assignee.telegram_chat_id,
+                        user_id: userId,
+                        priority: ticket.priority
                     }
 
-                    await fetch('https://n8n.namba.studio/webhook-test/notificar-ticket-asignado', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify(payload)
-                    })
+                    const webhookUrl = process.env.N8N_TICKET_ASSIGNED_WEBHOOK_URL
+                    if (webhookUrl) {
+                        await fetch(webhookUrl, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(payload)
+                        })
+                    } else {
+                        console.warn('N8N_TICKET_ASSIGNED_WEBHOOK_URL is not set')
+                    }
                 }
             }
         } catch (err) {

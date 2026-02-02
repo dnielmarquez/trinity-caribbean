@@ -94,6 +94,7 @@ export function CreateUserModal({ isOpen, onClose }: CreateUserModalProps) {
                     >
                         <option value="reporter">Reporter (Tenant/Staff)</option>
                         <option value="maintenance">Maintenance</option>
+                        <option value="housekeeper">Housekeeper</option>
                         <option value="sub_director">Sub Director</option>
                         <option value="admin">Admin</option>
                     </select>

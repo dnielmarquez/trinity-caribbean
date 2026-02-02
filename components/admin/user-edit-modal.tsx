@@ -22,6 +22,7 @@ const ROLES: { value: UserRole; label: string }[] = [
     { value: 'admin', label: 'Admin' },
     { value: 'sub_director', label: 'Sub Director' },
     { value: 'maintenance', label: 'Maintenance' },
+    { value: 'housekeeper', label: 'Housekeeper' },
     { value: 'reporter', label: 'Reporter' },
 ]
 
