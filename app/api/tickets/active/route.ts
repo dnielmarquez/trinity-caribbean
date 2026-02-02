@@ -39,36 +39,52 @@ export async function GET(request: Request) {
     try {
         const supabase = createServiceClient()
 
-        // Fetch active tickets
-        const { data: tickets, error: ticketsError } = await (supabase
-            .from('tickets')
-            .select('*')
-            .not('status', 'in', '("resolved","closed")')
-            .order('created_at', { ascending: false }) as any)
+        // Optimize: Run all independent queries in parallel
+        const [
+            { data: tickets, error: ticketsError },
+            { data: profiles, error: profilesError },
+            { data: properties, error: propertiesError },
+            { data: units, error: unitsError }
+        ] = await Promise.all([
+            (supabase
+                .from('tickets')
+                .select('*')
+                .not('status', 'in', '("resolved","closed")')
+                .order('created_at', { ascending: false }) as any),
+            (supabase
+                .from('profiles')
+                .select('id, full_name, role, telegram_chat_id') as any),
+            (supabase
+                .from('properties')
+                .select('id, name') as any),
+            (supabase
+                .from('units')
+                .select('id, name') as any)
+        ])
 
         if (ticketsError) {
             console.error('Error fetching tickets:', ticketsError)
             return NextResponse.json({ error: ticketsError.message }, { status: 500 })
         }
+        if (profilesError) console.error('Error fetching profiles:', profilesError)
+        // We continue even if helper data fails, but ideally we check all.
 
-        // Fetch all profiles for reference
-        const { data: profiles, error: profilesError } = await (supabase
-            .from('profiles')
-            .select('id, full_name, role, telegram_chat_id') as any)
-
-        if (profilesError) {
-            console.error('Error fetching profiles:', profilesError)
-            return NextResponse.json({ error: profilesError.message }, { status: 500 })
-        }
-
-        // Map profiles by ID for quick lookup
+        // Optimize: Create Maps for O(1) lookup
+        // We cast to any[] to avoid 'never' issues from implicit types
         const profilesMap = new Map((profiles as any[])?.map(p => [p.id, p]) || [])
+        const propertiesMap = new Map((properties as any[])?.map(p => [p.id, p.name]) || [])
+        const unitsMap = new Map((units as any[])?.map(u => [u.id, u.name]) || [])
 
-        // Enrich tickets
+        // Enrich tickets & Replace IDs with Names
         const enrichedTickets = (tickets as any[])?.map(t => {
             const assignedUser = t.assigned_to_user_id ? profilesMap.get(t.assigned_to_user_id) : null
             return {
                 ...t,
+                // Replace ID values with Names (fallback to ID if missing, or null)
+                property_id: propertiesMap.get(t.property_id) || t.property_id,
+                unit_id: t.unit_id ? (unitsMap.get(t.unit_id) || t.unit_id) : null,
+
+                // Add assigned user info
                 assigned_user_name: assignedUser?.full_name || null,
                 assigned_user_telegram_chat_id: assignedUser?.telegram_chat_id || null
             }
