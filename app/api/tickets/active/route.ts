@@ -39,23 +39,53 @@ export async function GET(request: Request) {
     try {
         const supabase = createServiceClient()
 
-        // Fetch tickets where status is NOT resolved OR closed
-        // Using "not.in" filter
-        const { data: tickets, error } = await supabase
+        // Fetch active tickets
+        const { data: tickets, error: ticketsError } = await (supabase
             .from('tickets')
             .select('*')
             .not('status', 'in', '("resolved","closed")')
-            .order('created_at', { ascending: false })
+            .order('created_at', { ascending: false }) as any)
 
-        if (error) {
-            console.error('Error fetching active tickets:', error)
-            return NextResponse.json({ error: error.message }, { status: 500 })
+        if (ticketsError) {
+            console.error('Error fetching tickets:', ticketsError)
+            return NextResponse.json({ error: ticketsError.message }, { status: 500 })
         }
+
+        // Fetch all profiles for reference
+        const { data: profiles, error: profilesError } = await (supabase
+            .from('profiles')
+            .select('id, full_name, role, telegram_chat_id') as any)
+
+        if (profilesError) {
+            console.error('Error fetching profiles:', profilesError)
+            return NextResponse.json({ error: profilesError.message }, { status: 500 })
+        }
+
+        // Map profiles by ID for quick lookup
+        const profilesMap = new Map((profiles as any[])?.map(p => [p.id, p]) || [])
+
+        // Enrich tickets
+        const enrichedTickets = (tickets as any[])?.map(t => {
+            const assignedUser = t.assigned_to_user_id ? profilesMap.get(t.assigned_to_user_id) : null
+            return {
+                ...t,
+                assigned_user_name: assignedUser?.full_name || null,
+                assigned_user_telegram_chat_id: assignedUser?.telegram_chat_id || null
+            }
+        })
+
+        // Extract global roles (first match)
+        const subDirector = (profiles as any[])?.find(p => p.role === 'sub_director')
+        const housekeeper = (profiles as any[])?.find(p => p.role === 'housekeeper')
+        const admin = (profiles as any[])?.find(p => p.role === 'admin')
 
         return NextResponse.json({
             success: true,
-            count: tickets?.length || 0,
-            data: tickets
+            count: enrichedTickets?.length || 0,
+            data: enrichedTickets,
+            sub_director_telegram_chat_id: subDirector?.telegram_chat_id || null,
+            housekeeper_telegram_chat_id: housekeeper?.telegram_chat_id || null,
+            admin_telegram_chat_id: admin?.telegram_chat_id || null
         })
 
     } catch (err) {
