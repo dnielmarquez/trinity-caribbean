@@ -5,7 +5,8 @@ export async function GET(request: Request) {
     // 1. Basic Auth Validation
     const authHeader = request.headers.get('Authorization')
 
-    if (!authHeader) {
+    if (!authHeader || !authHeader.startsWith('Basic ')) {
+        console.log('API Auth: Missing or invalid Authorization header')
         return new NextResponse('Unauthorized', {
             status: 401,
             headers: { 'WWW-Authenticate': 'Basic realm="Secure Area"' },
@@ -13,12 +14,21 @@ export async function GET(request: Request) {
     }
 
     const authValue = authHeader.split(' ')[1]
-    const [user, pwd] = Buffer.from(authValue, 'base64').toString().split(':')
+    const decoded = Buffer.from(authValue, 'base64').toString()
+    const [user, ...pwdParts] = decoded.split(':')
+    const pwd = pwdParts.join(':') // Re-join in case password has colons
 
     const validUser = process.env.N8N_API_USER
     const validPass = process.env.N8N_API_PASSWORD
 
+    // Strict check ensuring vars are defined
+    if (!validUser || !validPass) {
+        console.error('API Auth: Environment variables for N8N Auth are missing!')
+        return new NextResponse('Server Configuration Error', { status: 500 })
+    }
+
     if (user !== validUser || pwd !== validPass) {
+        console.log(`API Auth: Failed login attempt for user: ${user}`)
         return new NextResponse('Unauthorized', {
             status: 401,
             headers: { 'WWW-Authenticate': 'Basic realm="Secure Area"' },
