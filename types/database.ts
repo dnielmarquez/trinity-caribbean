@@ -21,7 +21,7 @@ export type Database = {
                 Insert: {
                     id: string
                     full_name: string
-                    role?: 'reporter' | 'maintenance' | 'sub_director' | 'admin'
+                    role?: 'reporter' | 'maintenance' | 'housekeeper' | 'sub_director' | 'admin'
                     telegram_chat_id?: string | null
                     created_at?: string
                     updated_at?: string
@@ -29,7 +29,7 @@ export type Database = {
                 Update: {
                     id?: string
                     full_name?: string
-                    role?: 'reporter' | 'maintenance' | 'sub_director' | 'admin'
+                    role?: 'reporter' | 'maintenance' | 'housekeeper' | 'sub_director' | 'admin'
                     telegram_chat_id?: string | null
                     created_at?: string
                     updated_at?: string
@@ -381,11 +381,11 @@ export type Database = {
         Functions: {
             get_user_role: {
                 Args: Record<string, never>
-                Returns: 'reporter' | 'maintenance' | 'sub_director' | 'admin'
+                Returns: 'reporter' | 'maintenance' | 'housekeeper' | 'sub_director' | 'admin'
             }
         }
         Enums: {
-            user_role: 'reporter' | 'maintenance' | 'sub_director' | 'admin'
+            user_role: 'reporter' | 'maintenance' | 'housekeeper' | 'sub_director' | 'admin'
             ticket_type: 'corrective' | 'preventive'
             ticket_category: 'ac' | 'appliances' | 'plumbing' | 'wifi' | 'furniture' | 'locks' | 'electricity' | 'painting' | 'cleaning' | 'pest_control' | 'other'
             ticket_priority: 'low' | 'medium' | 'high' | 'urgent'
