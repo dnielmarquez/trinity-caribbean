@@ -305,6 +305,7 @@ export default function NewTicketPage() {
                                         variant="outline"
                                         label="Camera"
                                         capture
+                                        accept="image/*"
                                         className="h-20 w-20 rounded-xl border-dashed bg-gray-50 flex flex-col items-center justify-center gap-1 text-gray-700 hover:bg-gray-100 hover:text-gray-900"
                                     />
                                     <FileUploadButton
@@ -486,6 +487,7 @@ export default function NewTicketPage() {
                                 size="sm"
                                 label="Camera"
                                 capture
+                                accept="image/*"
                             />
                             <FileUploadButton
                                 onUploadComplete={handleUploadComplete}

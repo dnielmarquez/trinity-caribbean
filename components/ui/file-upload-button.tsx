@@ -15,6 +15,7 @@ interface FileUploadButtonProps {
     capture?: boolean
     icon?: React.ReactNode
     label?: string
+    accept?: string
 }
 
 export function FileUploadButton({
@@ -25,7 +26,8 @@ export function FileUploadButton({
     className,
     capture,
     icon,
-    label
+    label,
+    accept = "image/*,video/*"
 }: FileUploadButtonProps) {
     const [isUploading, setIsUploading] = useState(false)
     const fileInputRef = useRef<HTMLInputElement>(null)
@@ -65,7 +67,7 @@ export function FileUploadButton({
                 type="file"
                 ref={fileInputRef}
                 className="hidden"
-                accept="image/*,video/*"
+                accept={accept}
                 capture={capture ? "environment" : undefined}
                 onChange={handleFileSelect}
             />
