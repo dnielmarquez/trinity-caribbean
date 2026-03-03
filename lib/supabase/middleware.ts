@@ -81,6 +81,28 @@ export async function updateSession(request: NextRequest) {
                 url.pathname = '/cleaning-check'
                 return NextResponse.redirect(url)
             }
+        } else if (role === 'maintenance') {
+            const path = request.nextUrl.pathname
+            // Allow maintenance specific routes and general auth/api routes
+            const allowedPaths = ['/maintenance', '/tickets', '/logout', '/login', '/api']
+            const isAllowed = allowedPaths.some(p => path.startsWith(p))
+
+            if (!isAllowed && path !== '/') {
+                const url = request.nextUrl.clone()
+                url.pathname = '/maintenance'
+                return NextResponse.redirect(url)
+            }
+
+            if (path === '/' || path === '/dashboard') {
+                const url = request.nextUrl.clone()
+                url.pathname = '/maintenance'
+                return NextResponse.redirect(url)
+            }
+        } else if (role !== 'maintenance' && request.nextUrl.pathname.startsWith('/maintenance')) {
+            // Block non-maintenance users from hitting the maintenance-specific dashboard
+            const url = request.nextUrl.clone()
+            url.pathname = '/dashboard'
+            return NextResponse.redirect(url)
         }
     }
 

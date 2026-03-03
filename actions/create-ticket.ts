@@ -35,6 +35,9 @@ export async function createTicket(data: z.infer<typeof createTicketSchema>) {
         return { error: validated.error.errors[0].message }
     }
 
+    const role = (user.profile as any)?.role
+    const isMaintenance = role === 'maintenance'
+
     const { data: ticket, error } = await supabase
         .from('tickets')
         .insert({
@@ -45,6 +48,8 @@ export async function createTicket(data: z.infer<typeof createTicketSchema>) {
             unit_id: validated.data.unit_id || null,
             created_by: user.id,
             requires_spend: validated.data.requires_spend || false,
+            assigned_to_user_id: isMaintenance ? user.id : null,
+            status: isMaintenance ? 'assigned' : 'reported',
         } as any) // Type assertion to bypass type inference issue
         .select()
         .single()
@@ -60,7 +65,7 @@ export async function createTicket(data: z.infer<typeof createTicketSchema>) {
         actor_id: user.id,
         action: 'created',
         from_value: null,
-        to_value: { status: 'reported' },
+        to_value: { status: isMaintenance ? 'assigned' : 'reported' },
     } as any)
 
     if ((ticket as any).priority === 'urgent') {

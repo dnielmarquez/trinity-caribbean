@@ -14,6 +14,7 @@ import { CommentItem } from '@/components/tickets/comment-item'
 import { TimelineItem } from '@/components/tickets/timeline-item'
 import { TicketExpenses } from '@/components/tickets/ticket-expenses'
 import { TicketCommentForm } from '@/components/tickets/ticket-comment-form'
+import { ResolveTicketButton } from '@/components/tickets/resolve-ticket-button'
 
 type Ticket = Database['public']['Tables']['tickets']['Row']
 type Property = Database['public']['Tables']['properties']['Row']
@@ -79,7 +80,7 @@ export default async function TicketDetailPage({ params }: PageProps) {
         .returns<TicketWithDetails[]>()
         .single()
 
-    if (error || !ticket) {
+    if (error || !ticket || !user) {
         notFound()
     }
 
@@ -157,13 +158,18 @@ export default async function TicketDetailPage({ params }: PageProps) {
 
     return (
         <div className="p-4 md:p-6 max-w-6xl mx-auto space-y-6">
-            {/* Header */}
-            <div className="flex items-center gap-4">
+            {/* Dedicated Back Row */}
+            <div className="mb-2">
                 <Link href="/dashboard">
-                    <Button variant="ghost" size="icon">
-                        <ArrowLeft className="w-5 h-5" />
+                    <Button variant="ghost" size="sm" className="gap-2 -ml-2 text-gray-600 dark:text-gray-400">
+                        <ArrowLeft className="w-4 h-4" />
+                        Back
                     </Button>
                 </Link>
+            </div>
+
+            {/* Header */}
+            <div className="flex items-center gap-4">
                 <div className="flex-1">
                     <div className="flex items-center justify-between gap-4 mb-2">
                         <div className="flex items-center gap-3">
@@ -172,7 +178,7 @@ export default async function TicketDetailPage({ params }: PageProps) {
                                 {categoryConfig.label} - {ticket.property?.name}
                             </h1>
                         </div>
-                        {canEdit && <TicketEditButton ticket={ticket} staff={staff || []} />}
+                        {canEdit && user.profile.role !== 'maintenance' && <TicketEditButton ticket={ticket} staff={staff || []} />}
                     </div>
                     <div className="flex items-center gap-4 flex-wrap">
                         <StatusBadge status={ticket.status} />
@@ -187,10 +193,10 @@ export default async function TicketDetailPage({ params }: PageProps) {
                 </div>
             </div>
 
-            {/* Main Content Grid */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                {/* Left Column - Details */}
-                <div className="lg:col-span-2 space-y-6">
+            {/* Main Content Area */}
+            {user.profile.role === 'maintenance' ? (
+                // Maintenance Single-Column Layout
+                <div className="space-y-6">
                     {/* Description */}
                     <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
                         <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-3">
@@ -214,7 +220,7 @@ export default async function TicketDetailPage({ params }: PageProps) {
                             <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-3">
                                 Evidence ({attachments.length})
                             </h2>
-                            <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
                                 {attachments.map((attachment) => (
                                     <div key={attachment.id} className="relative group">
                                         {attachment.kind === 'image' ? (
@@ -249,7 +255,7 @@ export default async function TicketDetailPage({ params }: PageProps) {
                         <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
                             Comments ({comments?.length || 0})
                         </h2>
-                        <div className="space-y-4">
+                        <div className="space-y-4 mb-4">
                             {comments && comments.length > 0 ? (
                                 comments.map((comment) => (
                                     <CommentItem key={comment.id} comment={comment} />
@@ -261,7 +267,12 @@ export default async function TicketDetailPage({ params }: PageProps) {
                         <TicketCommentForm ticketId={id} />
                     </div>
 
-                    {/* Audit Timeline */}
+                    {/* Expenses */}
+                    <div className="w-full">
+                        <TicketExpenses ticketId={id} isEditable={canEdit} />
+                    </div>
+
+                    {/* Timeline */}
                     <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
                         <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
                             Timeline
@@ -276,11 +287,8 @@ export default async function TicketDetailPage({ params }: PageProps) {
                             )}
                         </div>
                     </div>
-                </div>
 
-                {/* Right Column - Metadata */}
-                <div className="space-y-6">
-                    {/* Info Card */}
+                    {/* Assigned To Metadata */}
                     <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6 space-y-4">
                         {ticket.assigned_to ? (
                             <div>
@@ -306,13 +314,143 @@ export default async function TicketDetailPage({ params }: PageProps) {
                                 </p>
                             </div>
                         )}
-                        {/* Dates removed as they are now in the timeline */}
                     </div>
 
-                    {/* Costs */}
-                    <TicketExpenses ticketId={id} isEditable={canEdit} />
+                    {/* Resolve Button for Assigned Maintenance */}
+                    {ticket.assigned_to?.id === user.id && !['resolved', 'closed'].includes(ticket.status) && (
+                        <div className="pt-4">
+                            <ResolveTicketButton ticketId={ticket.id} />
+                        </div>
+                    )}
                 </div>
-            </div>
+            ) : (
+                // Standard Dashboard Layout (Admin/Sub-Director)
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    {/* Left Column - Details */}
+                    <div className="lg:col-span-2 space-y-6">
+                        {/* Description */}
+                        <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+                            <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-3">
+                                Description
+                            </h2>
+                            <p className="text-gray-700 dark:text-gray-300 whitespace-pre-wrap">
+                                {ticket.description}
+                            </p>
+                            {ticket.requires_spend && (
+                                <div className="mt-4 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-3">
+                                    <p className="text-sm text-yellow-800 dark:text-yellow-200 font-medium">
+                                        💰 This ticket may require spending/purchases
+                                    </p>
+                                </div>
+                            )}
+                        </div>
+
+                        {/* Attachments */}
+                        {attachments && attachments.length > 0 && (
+                            <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+                                <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-3">
+                                    Evidence ({attachments.length})
+                                </h2>
+                                <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                                    {attachments.map((attachment) => (
+                                        <div key={attachment.id} className="relative group">
+                                            {attachment.kind === 'image' ? (
+                                                <img
+                                                    src={attachment.url}
+                                                    alt="Evidence"
+                                                    className="rounded-lg w-full h-32 object-cover"
+                                                />
+                                            ) : (
+                                                <div className="bg-gray-100 dark:bg-gray-700 rounded-lg w-full h-32 flex items-center justify-center">
+                                                    <span className="text-sm text-gray-600 dark:text-gray-400">
+                                                        {attachment.kind}
+                                                    </span>
+                                                </div>
+                                            )}
+                                            <a
+                                                href={attachment.url}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity rounded-lg flex items-center justify-center text-white text-sm font-medium"
+                                            >
+                                                View
+                                            </a>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+
+                        {/* Comments */}
+                        <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+                            <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+                                Comments ({comments?.length || 0})
+                            </h2>
+                            <div className="space-y-4">
+                                {comments && comments.length > 0 ? (
+                                    comments.map((comment) => (
+                                        <CommentItem key={comment.id} comment={comment} />
+                                    ))
+                                ) : (
+                                    <p className="text-sm text-gray-500 dark:text-gray-400">No comments yet</p>
+                                )}
+                            </div>
+                            <TicketCommentForm ticketId={id} />
+                        </div>
+
+                        {/* Audit Timeline */}
+                        <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+                            <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+                                Timeline
+                            </h2>
+                            <div className="space-y-4">
+                                {timelineEvents.length > 0 ? (
+                                    timelineEvents.map((log) => (
+                                        <TimelineItem key={log.id} log={log} />
+                                    ))
+                                ) : (
+                                    <p className="text-sm text-gray-500 dark:text-gray-400">No activity yet</p>
+                                )}
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Right Column - Metadata */}
+                    <div className="space-y-6">
+                        {/* Info Card */}
+                        <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6 space-y-4">
+                            {ticket.assigned_to ? (
+                                <div>
+                                    <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400 mb-1">
+                                        <User className="w-4 h-4" />
+                                        <span>Assigned to</span>
+                                    </div>
+                                    <p className="text-sm font-medium text-gray-900 dark:text-white">
+                                        {ticket.assigned_to.full_name}
+                                    </p>
+                                    <p className="text-xs text-gray-500 dark:text-gray-400 capitalize">
+                                        {ticket.assigned_to.role}
+                                    </p>
+                                </div>
+                            ) : (
+                                <div>
+                                    <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400 mb-1">
+                                        <User className="w-4 h-4" />
+                                        <span>Assigned to</span>
+                                    </div>
+                                    <p className="text-sm text-gray-500 dark:text-gray-400 italic">
+                                        Unassigned
+                                    </p>
+                                </div>
+                            )}
+                            {/* Dates removed as they are now in the timeline */}
+                        </div>
+
+                        {/* Costs */}
+                        <TicketExpenses ticketId={id} isEditable={canEdit} />
+                    </div>
+                </div>
+            )}
         </div>
     )
 }

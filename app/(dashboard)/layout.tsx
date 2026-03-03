@@ -13,6 +13,14 @@ export default async function DashboardLayout({
         redirect('/login')
     }
 
+    if (user.profile.role === 'maintenance') {
+        return (
+            <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+                {children}
+            </div>
+        )
+    }
+
     return (
         <DashboardShell user={user}>
             {children}

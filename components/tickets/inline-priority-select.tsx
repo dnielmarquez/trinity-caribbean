@@ -6,13 +6,9 @@ import { Database } from '@/types/database'
 import { PRIORITIES } from '@/lib/categories'
 import { updateTicket } from '@/actions/tickets'
 import { toast } from 'sonner'
-import {
-    DropdownMenu,
-    DropdownMenuContent,
-    DropdownMenuItem,
-    DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu'
+
 import { cn } from '@/lib/utils'
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '../ui/dropdown-menu'
 
 type TicketPriority = Database['public']['Enums']['ticket_priority']
 

@@ -6,7 +6,7 @@ import { Toaster } from 'sonner'
 const inter = Inter({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
-  title: 'Maintenance Management System',
+  title: 'Trinnity Caribbean',
   description: 'Centralized maintenance and damage report management',
 }
 

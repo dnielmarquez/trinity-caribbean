@@ -18,6 +18,8 @@ export default function NewTicketPage() {
     const [properties, setProperties] = useState<any[]>([])
     const [units, setUnits] = useState<any[]>([])
     const [loading, setLoading] = useState(false)
+    const [userRole, setUserRole] = useState<string | null>(null)
+    const [step, setStep] = useState<1 | 2 | 3>(1)
 
     const [formData, setFormData] = useState({
         property_id: '',
@@ -30,19 +32,34 @@ export default function NewTicketPage() {
         attachments: [] as { url: string; kind: 'image' | 'video' | 'invoice' }[]
     })
 
-    // Load properties
+    // Load properties and user role
     useEffect(() => {
-        const loadProperties = async () => {
-            const { data, error } = await supabase
-                .from('properties')
-                .select('*')
-                .order('name')
+        const loadInitialData = async () => {
+            const [
+                { data: propertyData },
+                { data: sessionData }
+            ] = await Promise.all([
+                supabase.from('properties').select('*').order('name'),
+                supabase.auth.getUser()
+            ])
 
-            if (!error && data) {
-                setProperties(data)
+            if (propertyData) {
+                setProperties(propertyData)
+            }
+
+            if (sessionData?.user) {
+                const { data: profileData } = await supabase
+                    .from('profiles')
+                    .select('role')
+                    .eq('id', sessionData.user.id)
+                    .single()
+
+                if (profileData) {
+                    setUserRole((profileData as any).role)
+                }
             }
         }
-        loadProperties()
+        loadInitialData()
     }, [supabase])
 
     // Load units when property changes
@@ -89,8 +106,19 @@ export default function NewTicketPage() {
             return
         }
 
+        // Auto-assign Priority for Maintenance
+        let finalPriority = formData.priority
+        if (userRole === 'maintenance') {
+            if (['ac', 'plumbing', 'wifi'].includes(formData.category)) {
+                finalPriority = 'urgent'
+            } else {
+                finalPriority = 'medium'
+            }
+        }
+
         const result = await createTicket({
             ...formData,
+            priority: finalPriority,
             category: formData.category as any,
             unit_id: formData.unit_id || null,
             attachments: formData.attachments.map(a => ({ url: a.url, kind: a.kind as any }))
@@ -112,6 +140,182 @@ export default function NewTicketPage() {
         }))
     }
 
+    // Maintenance User View (Mobile First Wizard)
+    if (userRole === 'maintenance') {
+        return (
+            <div className="p-4 pb-24 max-w-lg mx-auto w-full animate-in fade-in slide-in-from-bottom-4">
+                <div className="mb-6">
+                    <div className="flex items-center justify-between">
+                        <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
+                            New Ticket
+                        </h1>
+                        {step > 1 && (
+                            <Button variant="ghost" size="sm" onClick={() => setStep((step - 1) as 1 | 2)}>
+                                Back
+                            </Button>
+                        )}
+                    </div>
+                </div>
+
+                <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 p-6">
+                    {step === 1 && (
+                        <div className="space-y-6">
+                            <div className="space-y-4">
+                                <div>
+                                    <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                                        Property *
+                                    </label>
+                                    <select
+                                        required
+                                        value={formData.property_id}
+                                        onChange={(e) => setFormData({ ...formData, property_id: e.target.value, unit_id: '' })}
+                                        className="w-full p-4 text-lg bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none transition-all"
+                                    >
+                                        <option value="">Select Property...</option>
+                                        {properties.map((prop) => (
+                                            <option key={prop.id} value={prop.id}>
+                                                {prop.name}
+                                            </option>
+                                        ))}
+                                    </select>
+                                </div>
+
+                                <div>
+                                    <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                                        Unit (optional)
+                                    </label>
+                                    <select
+                                        value={formData.unit_id}
+                                        onChange={(e) => setFormData({ ...formData, unit_id: e.target.value })}
+                                        className="w-full p-4 text-lg bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none transition-all disabled:opacity-50"
+                                        disabled={!formData.property_id}
+                                    >
+                                        <option value="">Select Unit...</option>
+                                        {units.map((unit) => (
+                                            <option key={unit.id} value={unit.id}>
+                                                {unit.name}
+                                            </option>
+                                        ))}
+                                    </select>
+                                </div>
+                            </div>
+                            <Button
+                                className="w-full h-14 text-lg font-semibold rounded-xl"
+                                size="lg"
+                                onClick={() => setStep(2)}
+                                disabled={!formData.property_id}
+                            >
+                                Next Step
+                            </Button>
+                        </div>
+                    )}
+
+                    {step === 2 && (
+                        <div className="space-y-6 animate-in fade-in slide-in-from-right-4">
+                            <div>
+                                <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">
+                                    What seems to be the issue?
+                                </label>
+                                <div className="grid grid-cols-2 gap-3">
+                                    {categories.map((category) => {
+                                        const config = getCategoryConfig(category)
+                                        const Icon = config.icon
+                                        const isSelected = formData.category === category
+
+                                        return (
+                                            <button
+                                                key={category}
+                                                type="button"
+                                                onClick={() => setFormData({ ...formData, category })}
+                                                className={`
+                                                    p-4 rounded-xl border-2 transition-all flex flex-col items-center justify-center gap-2 hover:border-blue-500
+                                                    ${isSelected
+                                                        ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20'
+                                                        : 'border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700/50'
+                                                    }
+                                                `}
+                                            >
+                                                <Icon className={`w-8 h-8 ${isSelected ? 'text-blue-600' : config.color}`} />
+                                                <span className="text-sm font-medium text-gray-900 dark:text-white text-center">
+                                                    {config.label}
+                                                </span>
+                                            </button>
+                                        )
+                                    })}
+                                </div>
+                            </div>
+                            <Button
+                                className="w-full h-14 text-lg font-semibold rounded-xl"
+                                size="lg"
+                                onClick={() => setStep(3)}
+                                disabled={!formData.category}
+                            >
+                                Continue to Details
+                            </Button>
+                        </div>
+                    )}
+
+                    {step === 3 && (
+                        <form onSubmit={handleSubmit} className="space-y-6 animate-in fade-in slide-in-from-right-4">
+                            <div>
+                                <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                                    Description *
+                                </label>
+                                <textarea
+                                    required
+                                    value={formData.description}
+                                    onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                                    rows={4}
+                                    placeholder="Explain the issue..."
+                                    className="w-full p-4 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none transition-all resize-none text-lg"
+                                />
+                            </div>
+
+                            <div>
+                                <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                                    Photos / Videos
+                                </label>
+                                <div className="flex flex-wrap gap-2 items-center">
+                                    {formData.attachments.map((att, i) => (
+                                        <div key={i} className="relative group w-20 h-20 border rounded-xl bg-gray-100 overflow-hidden shadow-sm">
+                                            {att.kind === 'image' ? (
+                                                <img src={att.url} alt="Attachment" className="w-full h-full object-cover" />
+                                            ) : (
+                                                <div className="w-full h-full flex items-center justify-center text-xs bg-gray-200 dark:bg-gray-800 text-gray-500">Video</div>
+                                            )}
+                                            <button
+                                                type="button"
+                                                onClick={() => setFormData(prev => ({ ...prev, attachments: prev.attachments.filter((_, idx) => idx !== i) }))}
+                                                className="absolute top-1 right-1 bg-red-500 text-white w-5 h-5 rounded-full flex items-center justify-center text-xs opacity-0 group-hover:opacity-100 transition-opacity"
+                                            >
+                                                ×
+                                            </button>
+                                        </div>
+                                    ))}
+                                    <FileUploadButton
+                                        onUploadComplete={handleUploadComplete}
+                                        variant="outline"
+                                        className="h-20 w-20 rounded-xl border-dashed"
+                                    />
+                                </div>
+                            </div>
+
+                            <Button
+                                type="submit"
+                                className="w-full h-14 text-lg font-semibold rounded-xl shadow-lg"
+                                size="lg"
+                                disabled={loading || !formData.description}
+                            >
+                                {loading ? 'Submitting...' : 'Submit Final Ticket'}
+                            </Button>
+                        </form>
+                    )}
+                </div>
+            </div>
+        )
+    }
+
+    // Default Admin / Non-Maintenance View
     return (
         <div className="p-6 max-w-4xl mx-auto">
             <div className="mb-6">
@@ -165,34 +369,36 @@ export default function NewTicketPage() {
                     </div>
                 </div>
 
-                {/* Type */}
-                <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                        Type *
-                    </label>
-                    <div className="flex gap-4">
-                        <label className="flex items-center">
-                            <input
-                                type="radio"
-                                value="corrective"
-                                checked={formData.type === 'corrective'}
-                                onChange={(e) => setFormData({ ...formData, type: e.target.value as any })}
-                                className="mr-2"
-                            />
-                            <span className="text-sm text-gray-700 dark:text-gray-300">Corrective (urgent issue)</span>
+                {/* Type - Hidden for maintenance users, defaults to corrective */}
+                {userRole !== 'maintenance' && (
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                            Type *
                         </label>
-                        <label className="flex items-center">
-                            <input
-                                type="radio"
-                                value="preventive"
-                                checked={formData.type === 'preventive'}
-                                onChange={(e) => setFormData({ ...formData, type: e.target.value as any })}
-                                className="mr-2"
-                            />
-                            <span className="text-sm text-gray-700 dark:text-gray-300">Preventive (scheduled)</span>
-                        </label>
+                        <div className="flex gap-4">
+                            <label className="flex items-center">
+                                <input
+                                    type="radio"
+                                    value="corrective"
+                                    checked={formData.type === 'corrective'}
+                                    onChange={(e) => setFormData({ ...formData, type: e.target.value as any })}
+                                    className="mr-2"
+                                />
+                                <span className="text-sm text-gray-700 dark:text-gray-300">Corrective (urgent issue)</span>
+                            </label>
+                            <label className="flex items-center">
+                                <input
+                                    type="radio"
+                                    value="preventive"
+                                    checked={formData.type === 'preventive'}
+                                    onChange={(e) => setFormData({ ...formData, type: e.target.value as any })}
+                                    className="mr-2"
+                                />
+                                <span className="text-sm text-gray-700 dark:text-gray-300">Preventive (scheduled)</span>
+                            </label>
+                        </div>
                     </div>
-                </div>
+                )}
 
                 {/* Category - Icon Grid */}
                 <div>

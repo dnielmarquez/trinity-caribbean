@@ -14,6 +14,7 @@ import {
     ChevronLeft,
     ChevronRight,
     ClipboardCheck,
+    ListTodo,
 } from 'lucide-react'
 import { useState } from 'react'
 import { ROLE_PERMISSIONS } from '@/lib/role-permissions'
@@ -41,25 +42,37 @@ export default function Sidebar({ user, className, onNavigate }: SidebarProps) {
             name: 'Dashboard',
             href: '/dashboard',
             icon: LayoutDashboard,
-            show: user.profile.role !== 'reporter',
+            show: user.profile.role !== 'reporter' && user.profile.role !== 'maintenance',
+        },
+        {
+            name: 'My Tasks',
+            href: '/maintenance',
+            icon: ListTodo,
+            show: user.profile.role === 'maintenance',
         },
         {
             name: 'Tickets',
             href: '/tickets',
             icon: Ticket,
-            show: user.profile.role !== 'reporter',
+            show: user.profile.role !== 'reporter' && user.profile.role !== 'maintenance',
         },
         {
             name: 'Preventive',
             href: '/preventive',
             icon: Calendar,
-            show: user.profile.role !== 'reporter',
+            show: user.profile.role !== 'reporter' && user.profile.role !== 'maintenance',
         },
         {
             name: 'Properties',
             href: '/properties',
             icon: Building2,
-            show: user.profile.role !== 'reporter',
+            show: user.profile.role !== 'reporter' && user.profile.role !== 'maintenance',
+        },
+        {
+            name: 'Analytics',
+            href: '/analytics',
+            icon: ClipboardCheck,
+            show: permissions.canViewAnalytics,
         },
         {
             name: 'Admin',
@@ -95,7 +108,7 @@ export default function Sidebar({ user, className, onNavigate }: SidebarProps) {
                 <Ticket className="w-8 h-8 text-blue-600 flex-shrink-0" />
                 <div className={`ml-3 overflow-hidden transition-all duration-300 ${isCollapsed ? 'w-0 opacity-0 hidden' : 'w-auto opacity-100 block'}`}>
                     <h1 className="text-xl font-bold text-gray-900 dark:text-white whitespace-nowrap">
-                        Maintenance
+                        Trinnity C
                     </h1>
                 </div>
             </div>

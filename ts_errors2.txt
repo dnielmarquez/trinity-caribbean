@@ -1,0 +1,1 @@
+﻿app/(dashboard)/tickets/new/page.tsx(58,45): error TS2339: Property 'role' does not exist on type 'never'.
