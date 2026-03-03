@@ -12,6 +12,9 @@ interface FileUploadButtonProps {
     variant?: 'default' | 'outline' | 'ghost' | 'secondary'
     size?: 'default' | 'sm' | 'lg' | 'icon'
     className?: string
+    capture?: boolean
+    icon?: React.ReactNode
+    label?: string
 }
 
 export function FileUploadButton({
@@ -19,7 +22,10 @@ export function FileUploadButton({
     ticketId,
     variant = 'outline',
     size = 'sm',
-    className
+    className,
+    capture,
+    icon,
+    label
 }: FileUploadButtonProps) {
     const [isUploading, setIsUploading] = useState(false)
     const fileInputRef = useRef<HTMLInputElement>(null)
@@ -60,6 +66,7 @@ export function FileUploadButton({
                 ref={fileInputRef}
                 className="hidden"
                 accept="image/*,video/*"
+                capture={capture ? "environment" : undefined}
                 onChange={handleFileSelect}
             />
             <Button
@@ -68,14 +75,18 @@ export function FileUploadButton({
                 size={size}
                 onClick={() => fileInputRef.current?.click()}
                 disabled={isUploading}
-                title="Add photo or video"
+                title={label || "Add photo or video"}
+                className={className || (label ? "w-full h-full flex flex-col items-center justify-center gap-1" : "")}
             >
                 {isUploading ? (
-                    <Loader2 className="w-4 h-4 animate-spin" />
+                    <Loader2 className="w-5 h-5 animate-spin" />
+                ) : icon ? (
+                    icon
                 ) : (
-                    <Camera className="w-4 h-4" />
+                    <Camera className="w-5 h-5" />
                 )}
-                <span className="sr-only">Upload media</span>
+                {label && <span className="text-xs font-medium">{label}</span>}
+                {!label && <span className="sr-only">Upload media</span>}
             </Button>
         </div>
     )

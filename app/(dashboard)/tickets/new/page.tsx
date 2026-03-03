@@ -19,6 +19,7 @@ export default function NewTicketPage() {
     const [units, setUnits] = useState<any[]>([])
     const [loading, setLoading] = useState(false)
     const [userRole, setUserRole] = useState<string | null>(null)
+    const [isInitializing, setIsInitializing] = useState(true)
     const [step, setStep] = useState<1 | 2 | 3>(1)
 
     const [formData, setFormData] = useState({
@@ -58,6 +59,7 @@ export default function NewTicketPage() {
                     setUserRole((profileData as any).role)
                 }
             }
+            setIsInitializing(false)
         }
         loadInitialData()
     }, [supabase])
@@ -140,6 +142,14 @@ export default function NewTicketPage() {
         }))
     }
 
+    if (isInitializing) {
+        return (
+            <div className="flex items-center justify-center min-h-screen">
+                <div className="animate-spin w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full" />
+            </div>
+        )
+    }
+
     // Maintenance User View (Mobile First Wizard)
     if (userRole === 'maintenance') {
         return (
@@ -149,11 +159,9 @@ export default function NewTicketPage() {
                         <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
                             New Ticket
                         </h1>
-                        {step > 1 && (
-                            <Button variant="ghost" size="sm" onClick={() => setStep((step - 1) as 1 | 2)}>
-                                Back
-                            </Button>
-                        )}
+                        <Button variant="ghost" size="sm" onClick={() => step > 1 ? setStep((step - 1) as 1 | 2) : router.push('/maintenance')}>
+                            Back
+                        </Button>
                     </div>
                 </div>
 
@@ -295,7 +303,15 @@ export default function NewTicketPage() {
                                     <FileUploadButton
                                         onUploadComplete={handleUploadComplete}
                                         variant="outline"
-                                        className="h-20 w-20 rounded-xl border-dashed"
+                                        label="Camera"
+                                        capture
+                                        className="h-20 w-20 rounded-xl border-dashed bg-gray-50 flex flex-col items-center justify-center gap-1 text-gray-700 hover:bg-gray-100 hover:text-gray-900"
+                                    />
+                                    <FileUploadButton
+                                        onUploadComplete={handleUploadComplete}
+                                        variant="outline"
+                                        label="Gallery"
+                                        className="h-20 w-20 rounded-xl border-dashed bg-gray-50 flex flex-col items-center justify-center gap-1 text-gray-700 hover:bg-gray-100 hover:text-gray-900"
                                     />
                                 </div>
                             </div>
@@ -468,6 +484,14 @@ export default function NewTicketPage() {
                                 onUploadComplete={handleUploadComplete}
                                 variant="outline"
                                 size="sm"
+                                label="Camera"
+                                capture
+                            />
+                            <FileUploadButton
+                                onUploadComplete={handleUploadComplete}
+                                variant="outline"
+                                size="sm"
+                                label="Gallery"
                             />
                             {formData.attachments.map((att, i) => (
                                 <div key={i} className="relative group w-16 h-16 border rounded bg-gray-100 overflow-hidden">
