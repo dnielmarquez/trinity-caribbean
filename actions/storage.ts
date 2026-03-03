@@ -22,9 +22,9 @@ export async function uploadFile(formData: FormData) {
         return { error: 'No file provided' }
     }
 
-    // validate file size (e.g. 10MB limit)
-    if (file.size > 10 * 1024 * 1024) {
-        return { error: 'File size too large (max 10MB)' }
+    // validate file size (e.g. 50MB limit)
+    if (file.size > 50 * 1024 * 1024) {
+        return { error: 'File size too large (max 50MB)' }
     }
 
     const fileExt = file.name.split('.').pop()

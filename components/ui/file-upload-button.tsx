@@ -60,7 +60,6 @@ export function FileUploadButton({
                 ref={fileInputRef}
                 className="hidden"
                 accept="image/*,video/*"
-                capture="environment" // Hints mobile browsers to use camera
                 onChange={handleFileSelect}
             />
             <Button

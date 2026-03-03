@@ -165,7 +165,7 @@ export function TicketExpenses({ ticketId, isEditable = false }: TicketExpensesP
                             <div className="relative">
                                 <input
                                     type="file"
-                                    accept="image/*"
+                                    accept="image/*,video/*"
                                     onChange={(e) => setFile(e.target.files?.[0] || null)}
                                     className="hidden"
                                     id="expense-file"
@@ -173,12 +173,12 @@ export function TicketExpenses({ ticketId, isEditable = false }: TicketExpensesP
                                 <label
                                     htmlFor="expense-file"
                                     className={`flex items-center gap-2 px-3 py-2 rounded-md text-sm border cursor-pointer transition-colors ${file
-                                            ? 'bg-blue-50 border-blue-200 text-blue-700 dark:bg-blue-900/20 dark:border-blue-800'
-                                            : 'bg-white border-gray-300 hover:bg-gray-50 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-300'
+                                        ? 'bg-blue-50 border-blue-200 text-blue-700 dark:bg-blue-900/20 dark:border-blue-800'
+                                        : 'bg-white border-gray-300 hover:bg-gray-50 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-300'
                                         }`}
                                 >
                                     <Paperclip className="w-4 h-4" />
-                                    {file ? 'Image selected' : 'Attach Receipt'}
+                                    {file ? 'Media selected' : 'Attach Media'}
                                 </label>
                             </div>
                             {file && (
