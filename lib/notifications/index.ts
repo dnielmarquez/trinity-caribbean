@@ -1,24 +1,15 @@
 /**
  * =============================================
- * NOTIFICATION CENTER - PLACEHOLDER
+ * NOTIFICATION CENTER
  * =============================================
  * 
  * This module provides a centralized notification service
- * for the maintenance management system.
- * 
- * IMPORTANT: This is a PLACEHOLDER implementation.
- * Real notifications (Telegram, Email, n8n webhooks) are NOT implemented.
- * All functions currently only log to console.
- * 
- * FUTURE INTEGRATION POINTS:
- * - Telegram Bot API for instant notifications
- * - Email service (SendGrid, AWS SES, etc.)
- * - n8n webhooks for workflow automation
- * - SMS notifications for urgent tickets
+ * for the maintenance ticket management system.
  * 
  * =============================================
  */
 
+import { createClient } from '@/lib/supabase/server'
 import type { Database } from '@/types/database'
 
 type Ticket = Database['public']['Tables']['tickets']['Row']
@@ -35,46 +26,92 @@ export interface NotificationPayload {
 
 /**
  * Send notification when a new ticket is created
- * TODO: Implement Telegram notification
- * TODO: Implement email notification
+ * Sends a Telegram notification (individual webhook call) to all sub_directors
  */
 export async function sendTicketCreatedNotification(
     ticket: Ticket,
     createdBy: Profile
 ): Promise<void> {
-    console.log('📢 [NOTIFICATION PLACEHOLDER] Ticket Created:', {
-        ticketId: ticket.id,
-        category: ticket.category,
-        priority: ticket.priority,
-        property: ticket.property_id,
-        createdBy: createdBy.full_name,
-        // TODO: Send Telegram message to admin/sub_director
-        // TODO: Send email notification
-        // TODO: Trigger n8n workflow
-    })
+    const supabase = await createClient()
+    const { data: managers, error } = await (supabase
+        .from('profiles') as any)
+        .select('id, full_name, telegram_chat_id')
+        .in('role', ['sub_director', 'admin'])
+
+    if (error) {
+        console.error('Error fetching managers for notification:', error)
+        return
+    }
+
+    const webhookUrl = process.env.N8N_TICKET_CREATED_WEBHOOK_URL
+    if (!webhookUrl) {
+        console.warn('N8N_TICKET_CREATED_WEBHOOK_URL is not set')
+        return
+    }
+
+    if (managers && managers.length > 0) {
+        for (const manager of managers) {
+            if (manager.telegram_chat_id) {
+                try {
+                    await fetch(webhookUrl, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            ticket_id: ticket.id,
+                            created_by: createdBy.full_name,
+                            category: ticket.category,
+                            description: ticket.description,
+                            priority: ticket.priority,
+                            created_by_id: createdBy.id,
+                            telegram_chat_id: manager.telegram_chat_id
+                        })
+                    })
+                } catch (err) {
+                    console.error(`Failed to send creation webhook to manager ${manager.full_name}:`, err)
+                }
+            }
+        }
+    }
 }
 
 /**
  * Send notification when a ticket is assigned
- * TODO: Implement Telegram notification to assigned user
- * TODO: Implement email notification
+ * Sends a Telegram notification to the assigned user
  */
 export async function sendTicketAssignedNotification(
     ticket: Ticket,
-    assignedTo: Profile
+    assignedTo: Profile,
+    assignedBy: string = 'System'
 ): Promise<void> {
-    console.log('📢 [NOTIFICATION PLACEHOLDER] Ticket Assigned:', {
-        ticketId: ticket.id,
-        assignedTo: assignedTo.full_name,
-        assignedToRole: assignedTo.role,
-        // TODO: Send Telegram message to assigned user
-        // TODO: Send email to assigned user
-    })
+    const webhookUrl = process.env.N8N_TICKET_ASSIGNED_WEBHOOK_URL
+    if (!webhookUrl) {
+        console.warn('N8N_TICKET_ASSIGNED_WEBHOOK_URL is not set')
+        return
+    }
+
+    if (assignedTo.telegram_chat_id) {
+        try {
+            await fetch(webhookUrl, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    ticket_id: ticket.id,
+                    assigned_by: assignedBy,
+                    category: ticket.category,
+                    description: ticket.description,
+                    user_telegram_chat_id: assignedTo.telegram_chat_id,
+                    user_id: assignedTo.id,
+                    priority: ticket.priority
+                })
+            })
+        } catch (err) {
+            console.error(`Failed to send assignment webhook to ${assignedTo.full_name}:`, err)
+        }
+    }
 }
 
 /**
  * Send notification when ticket status changes
- * TODO: Implement based on status transition
  */
 export async function sendTicketStatusChangedNotification(
     ticket: Ticket,
@@ -85,21 +122,17 @@ export async function sendTicketStatusChangedNotification(
         ticketId: ticket.id,
         from: oldStatus,
         to: newStatus,
-        // TODO: Notify relevant stakeholders based on status
     })
 }
 
 /**
  * Send notification when a ticket is resolved
- * TODO: Notify ticket creator and admins
  */
 export async function sendTicketResolvedNotification(
     ticket: Ticket
 ): Promise<void> {
     console.log('📢 [NOTIFICATION PLACEHOLDER] Ticket Resolved:', {
         ticketId: ticket.id,
-        // TODO: Notify creator that work is complete
-        // TODO: Notify admin for approval
     })
 }
 
@@ -111,13 +144,11 @@ export async function sendTicketClosedNotification(
 ): Promise<void> {
     console.log('📢 [NOTIFICATION PLACEHOLDER] Ticket Closed:', {
         ticketId: ticket.id,
-        // TODO: Final notification to all stakeholders
     })
 }
 
 /**
  * Send notification when a property is blocked
- * TODO: High priority notification to admins
  */
 export async function sendPropertyBlockedNotification(
     propertyId: string,
@@ -130,14 +161,11 @@ export async function sendPropertyBlockedNotification(
         propertyName,
         reason,
         blockedBy: blockedBy.full_name,
-        // TODO: Urgent Telegram notification
-        // TODO: Email to admin and sub_directors
     })
 }
 
 /**
  * Send urgent notification for high priority tickets
- * TODO: Implement escalation logic
  */
 export async function sendUrgentTicketNotification(
     ticket: Ticket
@@ -146,23 +174,16 @@ export async function sendUrgentTicketNotification(
         console.log('🚨 [NOTIFICATION PLACEHOLDER] URGENT TICKET:', {
             ticketId: ticket.id,
             category: ticket.category,
-            // TODO: Immediately notify all admins and sub_directors
-            // TODO: Send SMS for critical issues
         })
     }
 }
 
 /**
  * Generic notification sender
- * TODO: Implement routing logic based on notification type
  */
 export async function sendNotification(
     payload: NotificationPayload
 ): Promise<void> {
     console.log('📢 [NOTIFICATION PLACEHOLDER] Generic Notification:', payload)
-
-    // TODO: Route to appropriate channel based on:
-    // - payload.type
-    // - payload.priority
-    // - user preferences
 }
+

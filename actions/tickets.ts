@@ -3,6 +3,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { createServiceClient as createAdminClient } from '@/lib/supabase/service'
 import { getCurrentUser } from '@/lib/rbac'
+import { sendTicketAssignedNotification } from '@/lib/notifications'
 import { revalidatePath } from 'next/cache'
 import type { Database } from '@/types/database'
 
@@ -216,69 +217,30 @@ export async function assignTicket(ticketId: string, userId: string | null) {
 
     // Webhook Notification
     if (userId) {
-        // We fire and forget this to not block the UI response, 
-        // but since Vercel/Serverless lambda functions might freeze execution after response,
-        // it is safer to await it or use `waitUntil` (if available in Next.js/platform).
-        // For standard server actions, awaiting is safer to ensure delivery.
         try {
-            // Fetch assignee for telegram id
             const { data: assignee } = await (supabase
                 .from('profiles') as any)
-                .select('telegram_chat_id')
+                .select('*')
                 .eq('id', userId)
                 .single()
 
-            if (assignee?.telegram_chat_id) {
-                // Fetch ticket details if not available (we only have ID)
-                // We deliberately fetch fresh data to be accurate
+            if (assignee) {
                 const { data: ticket } = await (supabase
                     .from('tickets') as any)
-                    .select('category, description, priority')
+                    .select('*')
                     .eq('id', ticketId)
                     .single()
 
-
                 if (ticket) {
-                    let subDirectorChatId: string | undefined
-
-                    if (ticket.priority === 'urgent') {
-                        const { data: subDirector } = await (supabase
-                            .from('profiles') as any)
-                            .select('telegram_chat_id')
-                            .eq('role', 'sub_director')
-                            .limit(1)
-                            .single()
-
-                        if (subDirector?.telegram_chat_id) {
-                            subDirectorChatId = subDirector.telegram_chat_id
-                        }
-                    }
-
-                    const payload = {
-                        ticket_id: ticketId,
-                        assigned_by: (user as any).profile?.full_name || 'System',
-                        category: ticket.category,
-                        description: ticket.description,
-                        user_telegram_chat_id: assignee.telegram_chat_id,
-                        user_id: userId,
-                        priority: ticket.priority
-                    }
-
-                    const webhookUrl = process.env.N8N_TICKET_ASSIGNED_WEBHOOK_URL
-                    if (webhookUrl) {
-                        await fetch(webhookUrl, {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify(payload)
-                        })
-                    } else {
-                        console.warn('N8N_TICKET_ASSIGNED_WEBHOOK_URL is not set')
-                    }
+                    await sendTicketAssignedNotification(
+                        ticket as any,
+                        assignee as any,
+                        (user as any).profile?.full_name || 'System'
+                    )
                 }
             }
         } catch (err) {
-            console.error('Failed to trigger assignment  webhook:', err)
-            // We ignore webhook errors to not fail the assignment itself
+            console.error('Failed to trigger assignment webhook:', err)
         }
     }
 
@@ -395,6 +357,26 @@ export async function updateTicket(ticketId: string, updates: TicketUpdate) {
 
         if (auditError) {
             console.error('Error inserting audit log (update):', auditError)
+        }
+    }
+
+    if (finalUpdates.assigned_to_user_id && finalUpdates.assigned_to_user_id !== oldTicket?.assigned_to_user_id) {
+        try {
+            const { data: assigneeProfile } = await (supabase
+                .from('profiles') as any)
+                .select('*')
+                .eq('id', finalUpdates.assigned_to_user_id)
+                .single()
+
+            if (assigneeProfile) {
+                await sendTicketAssignedNotification(
+                    data as any,
+                    assigneeProfile as any,
+                    (user as any).profile?.full_name || 'System'
+                )
+            }
+        } catch (err) {
+            console.error('Failed to send assignment notification on ticket update:', err)
         }
     }
 

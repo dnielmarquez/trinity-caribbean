@@ -87,97 +87,23 @@ export async function createTicket(data: z.infer<typeof createTicketSchema>) {
         },
     } as any)
 
-    if ((ticket as any).priority === 'urgent') {
-        await sendUrgentTicketNotification(ticket as any)
+    // Send creation notification (Telegram webhook call for each sub_director)
+    try {
+        await sendTicketCreatedNotification(ticket as any, (user as any).profile as any)
+    } catch (err) {
+        console.error('Failed to send ticket created notification:', err)
     }
 
-    // Send assignment notification if assigned
+    // Send assignment notification if assigned (Telegram webhook call for assigned user)
     if (assigned_to_user_id) {
         const targetProfile = assigneeProfile || (isMaintenance ? (user as any).profile : null)
         if (targetProfile) {
             try {
-                await sendTicketAssignedNotification(ticket as any, targetProfile as any)
+                await sendTicketAssignedNotification(ticket as any, targetProfile as any, (user as any).profile?.full_name || 'System')
             } catch (err) {
                 console.error('Failed to send ticket assigned notification:', err)
             }
         }
-    }
-
-    // Webhook for Ticket Assignment (All priorities)
-    if (assigned_to_user_id) {
-        try {
-            const assigneeTelegramChatId = assigneeProfile?.telegram_chat_id || (isMaintenance ? (user as any).profile?.telegram_chat_id : null)
-            if (assigneeTelegramChatId) {
-                const webhookUrl = process.env.N8N_TICKET_ASSIGNED_WEBHOOK_URL
-                if (webhookUrl) {
-                    const payload = {
-                        ticket_id: (ticket as any).id,
-                        assigned_by: (user as any).profile?.full_name || 'System',
-                        category: (ticket as any).category,
-                        description: (ticket as any).description,
-                        user_telegram_chat_id: assigneeTelegramChatId,
-                        user_id: assigned_to_user_id,
-                        priority: (ticket as any).priority
-                    }
-                    await fetch(webhookUrl, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify(payload)
-                    })
-                }
-            }
-        } catch (err) {
-            console.error('Failed to trigger assigned webhook:', err)
-        }
-    }
-
-    // Webhook for Ticket Creation (All priorities)
-    try {
-        const webhookUrl = process.env.N8N_TICKET_CREATED_WEBHOOK_URL
-        if (webhookUrl) {
-            const payload: any = {
-                ticket_id: (ticket as any).id,
-                created_by: (user as any).profile?.full_name || 'System', // Renamed from assigned_by
-                category: (ticket as any).category,
-                description: (ticket as any).description,
-                priority: (ticket as any).priority,
-                created_by_id: user.id
-            }
-
-            // Fetch Housekeeper (Always included)
-            const { data: housekeeper } = await (supabase
-                .from('profiles') as any)
-                .select('telegram_chat_id')
-                .eq('role', 'housekeeper')
-                .limit(1)
-                .single()
-
-            if (housekeeper?.telegram_chat_id) {
-                payload.housekeeper_telegram_chat_id = housekeeper.telegram_chat_id
-            }
-
-            // If Urgent, add Sub Director Chat ID
-            if ((ticket as any).priority === 'urgent') {
-                const { data: subDirector } = await (supabase
-                    .from('profiles') as any)
-                    .select('telegram_chat_id')
-                    .eq('role', 'sub_director')
-                    .limit(1)
-                    .single()
-
-                if (subDirector?.telegram_chat_id) {
-                    payload.sub_director_telegram_chat_id = subDirector.telegram_chat_id
-                }
-            }
-
-            await fetch(webhookUrl, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload)
-            })
-        }
-    } catch (err) {
-        console.error('Failed to trigger created webhook:', err)
     }
 
     // Add initial comment if present
