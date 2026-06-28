@@ -56,17 +56,32 @@ export default async function AnalyticsPage(props: { searchParams: Promise<{ pro
     const { data: criticalTickets } = await criticalTicketsQuery
 
     // Map critical tickets to match the block shape
+    const categoryTranslations: Record<string, string> = {
+        ac: 'Aire Acondicionado',
+        appliances: 'Electrodomésticos',
+        plumbing: 'Plomería',
+        wifi: 'Internet/Wifi',
+        furniture: 'Muebles',
+        locks: 'Cerraduras',
+        electricity: 'Electricidad',
+        painting: 'Pintura',
+        cleaning: 'Limpieza',
+        pest_control: 'Control de Plagas',
+        other: 'Otro'
+    }
+
     const ticketBlocks = (criticalTickets || []).map((t: any) => {
         const diffMs = Math.abs(new Date().getTime() - new Date(t.created_at).getTime())
         const diffHrs = diffMs / (1000 * 60 * 60)
+        const categoryName = categoryTranslations[t.category] || t.category.toUpperCase()
         return {
             id: t.id,
             property_id: t.property_id,
             unit_id: t.unit_id,
-            property_name: t.properties?.name || 'Unknown Property',
+            property_name: t.properties?.name || 'Propiedad desconocida',
             unit_name: t.units?.name,
-            reason: `Maintenance: ${t.category.toUpperCase()}`,
-            blocked_by_name: t.assigned_to?.full_name || 'Unassigned',
+            reason: `Mantenimiento: ${categoryName}`,
+            blocked_by_name: t.assigned_to?.full_name || 'Sin asignar',
             blocked_duration_hours: diffHrs
         }
     })
@@ -106,7 +121,7 @@ export default async function AnalyticsPage(props: { searchParams: Promise<{ pro
     return (
         <div className="p-6 max-w-7xl mx-auto space-y-6">
             <div className="flex justify-between items-center">
-                <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Analytics Overview</h1>
+                <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Panel de Análisis</h1>
             </div>
 
             <AnalyticsClient

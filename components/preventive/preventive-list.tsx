@@ -27,6 +27,7 @@ import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuIte
 import { Button } from '@/components/ui/button'
 import { updatePreventiveTask, deletePreventiveTask } from '@/actions/preventive'
 import { toast } from 'sonner'
+import { CATEGORIES, type TicketCategory } from '@/lib/categories'
 
 import { InlinePreventiveAssigneeSelect } from './inline-preventive-assignee-select'
 
@@ -53,6 +54,17 @@ const CATEGORY_ICONS: Record<string, any> = {
     other: Wrench,
 }
 
+const RECURRENCE_TYPES: Record<string, string> = {
+    day: 'día',
+    days: 'días',
+    week: 'semana',
+    weeks: 'semanas',
+    month: 'mes',
+    months: 'meses',
+    year: 'año',
+    years: 'años',
+}
+
 interface PreventiveListProps {
     tasks: PreventiveTask[]
     properties: Property[] // Used for the property filter if enabled
@@ -76,19 +88,19 @@ export function PreventiveList({ tasks, properties, profiles, currentPropertyId 
         if (result.error) {
             toast.error(result.error)
         } else {
-            toast.success(`Schedule ${newStatus ? 'resumed' : 'paused'}`)
+            toast.success(`Programación ${newStatus ? 'reanudada' : 'pausada'}`)
         }
     }
 
     const handleDelete = async (taskId: string) => {
-        if (!confirm('Are you sure you want to delete this schedule? This action cannot be undone.')) return
+        if (!confirm('¿Está seguro de que desea eliminar esta programación? Esta acción no se puede deshacer.')) return
 
         const result = await deletePreventiveTask(taskId)
 
         if (result.error) {
             toast.error(result.error)
         } else {
-            toast.success('Schedule deleted')
+            toast.success('Programación eliminada')
         }
     }
 
@@ -117,8 +129,8 @@ export function PreventiveList({ tasks, properties, profiles, currentPropertyId 
         return (
             <div className="text-center py-12 bg-white dark:bg-gray-800 rounded-lg shadow">
                 <Calendar className="w-12 h-12 mx-auto text-gray-400 mb-4" />
-                <h3 className="text-lg font-medium text-gray-900 dark:text-white">No schedules found</h3>
-                <p className="text-gray-500 dark:text-gray-400 mt-2">Create a new preventive maintenance schedule to get started.</p>
+                <h3 className="text-lg font-medium text-gray-900 dark:text-white">No se encontraron programaciones</h3>
+                <p className="text-gray-500 dark:text-gray-400 mt-2">Cree una nueva programación de mantenimiento preventivo para comenzar.</p>
             </div>
         )
     }
@@ -129,7 +141,7 @@ export function PreventiveList({ tasks, properties, profiles, currentPropertyId 
             <div className="flex flex-wrap gap-4 bg-white dark:bg-gray-800 p-4 rounded-lg shadow-sm border border-gray-100 dark:border-gray-700">
                 <div className="flex items-center gap-2 text-gray-500 dark:text-gray-400">
                     <Filter className="w-4 h-4" />
-                    <span className="text-sm font-medium">Filters:</span>
+                    <span className="text-sm font-medium">Filtros:</span>
                 </div>
 
                 {/* Property Filter - Show only if not locked to a specific property via URL */}
@@ -142,7 +154,7 @@ export function PreventiveList({ tasks, properties, profiles, currentPropertyId 
                             setSelectedUnitName('all') // Reset unit when property changes
                         }}
                     >
-                        <option value="all">All Properties</option>
+                        <option value="all">Todas las Propiedades</option>
                         {properties.map(p => (
                             <option key={p.id} value={p.id}>{p.name}</option>
                         ))}
@@ -156,7 +168,7 @@ export function PreventiveList({ tasks, properties, profiles, currentPropertyId 
                     onChange={(e) => setSelectedUnitName(e.target.value)}
                     disabled={availableUnits.length === 0}
                 >
-                    <option value="all">All Units</option>
+                    <option value="all">Todas las Unidades</option>
                     {availableUnits.map(unit => (
                         <option key={unit} value={unit}>{unit}</option>
                     ))}
@@ -169,21 +181,21 @@ export function PreventiveList({ tasks, properties, profiles, currentPropertyId 
                     <table className="w-full">
                         <thead className="bg-gray-50 dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700">
                             <tr>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Type</th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Property</th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Description</th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Recurrence</th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Next Due</th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Assigned To</th>
-                                <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Status</th>
-                                <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Actions</th>
+                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Tipo</th>
+                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Propiedad</th>
+                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Descripción</th>
+                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Recurrencia</th>
+                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Próximo Vencimiento</th>
+                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Asignado A</th>
+                                <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Estado</th>
+                                <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Acciones</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
                             {filteredTasks.length === 0 ? (
                                 <tr>
                                     <td colSpan={8} className="px-6 py-8 text-center text-gray-500 dark:text-gray-400">
-                                        No schedules match your filters.
+                                        Ninguna programación coincide con sus filtros.
                                     </td>
                                 </tr>
                             ) : (
@@ -197,18 +209,18 @@ export function PreventiveList({ tasks, properties, profiles, currentPropertyId 
                                                         <Icon className="w-4 h-4 text-blue-600 dark:text-blue-400" />
                                                     </div>
                                                     <span className="text-sm font-medium text-gray-900 dark:text-white capitalize">
-                                                        {task.category.replace('_', ' ')}
+                                                        {CATEGORIES[task.category as TicketCategory]?.label || task.category.replace('_', ' ')}
                                                     </span>
                                                 </div>
                                             </td>
                                             <td className="px-6 py-4 whitespace-nowrap">
                                                 <div className="flex flex-col">
                                                     <span className="text-sm text-gray-900 dark:text-white font-medium">
-                                                        {task.property?.name || 'Unknown'}
+                                                        {task.property?.name || 'Desconocido'}
                                                     </span>
                                                     {task.unit && (
                                                         <span className="text-xs text-gray-500 dark:text-gray-400">
-                                                            Unit {task.unit.name}
+                                                            Unidad {task.unit.name}
                                                         </span>
                                                     )}
                                                 </div>
@@ -221,7 +233,7 @@ export function PreventiveList({ tasks, properties, profiles, currentPropertyId 
                                             <td className="px-6 py-4 whitespace-nowrap">
                                                 <div className="flex items-center gap-1 text-sm text-gray-600 dark:text-gray-300">
                                                     <Clock className="w-3.5 h-3.5" />
-                                                    <span>Every {task.recurrence_interval} {task.recurrence_type}</span>
+                                                    <span>Cada {task.recurrence_interval} {RECURRENCE_TYPES[task.recurrence_type] || task.recurrence_type}</span>
                                                 </div>
                                             </td>
                                             <td className="px-6 py-4 whitespace-nowrap">
@@ -241,7 +253,7 @@ export function PreventiveList({ tasks, properties, profiles, currentPropertyId 
                                                     ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
                                                     : 'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-400'
                                                     }`}>
-                                                    {task.is_active ? 'Active' : 'Inactive'}
+                                                    {task.is_active ? 'Activo' : 'Inactivo'}
                                                 </span>
                                             </td>
                                             <td className="px-6 py-4 whitespace-nowrap text-right">
@@ -256,12 +268,12 @@ export function PreventiveList({ tasks, properties, profiles, currentPropertyId 
                                                             {task.is_active ? (
                                                                 <>
                                                                     <StopCircle className="mr-2 h-4 w-4" />
-                                                                    Pause Schedule
+                                                                    Pausar Programación
                                                                 </>
                                                             ) : (
                                                                 <>
                                                                     <PlayCircle className="mr-2 h-4 w-4" />
-                                                                    Resume Schedule
+                                                                    Reanudar Programación
                                                                 </>
                                                             )}
                                                         </DropdownMenuItem>
@@ -270,7 +282,7 @@ export function PreventiveList({ tasks, properties, profiles, currentPropertyId 
                                                             className="text-red-600 dark:text-red-400"
                                                         >
                                                             <Trash2 className="mr-2 h-4 w-4" />
-                                                            Delete
+                                                            Eliminar
                                                         </DropdownMenuItem>
                                                     </DropdownMenuContent>
                                                 </DropdownMenu>

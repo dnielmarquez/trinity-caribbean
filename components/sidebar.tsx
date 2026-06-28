@@ -17,7 +17,7 @@ import {
     ListTodo,
 } from 'lucide-react'
 import { useState } from 'react'
-import { ROLE_PERMISSIONS } from '@/lib/role-permissions'
+import { ROLE_PERMISSIONS, ROLE_LABELS } from '@/lib/role-permissions'
 
 interface SidebarProps {
     user: {
@@ -39,13 +39,13 @@ export default function Sidebar({ user, className, onNavigate }: SidebarProps) {
     const navigation = [
         // ... (I'll keep the navigation array the same, just update usages below)
         {
-            name: 'Dashboard',
+            name: 'Tablero',
             href: '/dashboard',
             icon: LayoutDashboard,
             show: user.profile.role !== 'reporter' && user.profile.role !== 'maintenance',
         },
         {
-            name: 'My Tasks',
+            name: 'Mis Tareas',
             href: '/maintenance',
             icon: ListTodo,
             show: user.profile.role === 'maintenance',
@@ -57,25 +57,25 @@ export default function Sidebar({ user, className, onNavigate }: SidebarProps) {
             show: user.profile.role !== 'reporter' && user.profile.role !== 'maintenance',
         },
         {
-            name: 'Preventive',
+            name: 'Preventivo',
             href: '/preventive',
             icon: Calendar,
             show: user.profile.role !== 'reporter' && user.profile.role !== 'maintenance',
         },
         {
-            name: 'Properties',
+            name: 'Propiedades',
             href: '/properties',
             icon: Building2,
             show: user.profile.role !== 'reporter' && user.profile.role !== 'maintenance',
         },
         {
-            name: 'Analytics',
+            name: 'Análisis',
             href: '/analytics',
             icon: ClipboardCheck,
             show: permissions.canViewAnalytics,
         },
         {
-            name: 'Admin',
+            name: 'Administración',
             href: '/admin',
             icon: Shield,
             show: permissions.canManageUsers,
@@ -126,7 +126,7 @@ export default function Sidebar({ user, className, onNavigate }: SidebarProps) {
                             {user.profile.full_name}
                         </p>
                         <p className={`text-xs font-medium px-2 py-0.5 rounded-full inline-block mt-1 ${roleColors[user.profile.role]}`}>
-                            {user.profile.role.replace('_', ' ')}
+                            {ROLE_LABELS[user.profile.role] || user.profile.role}
                         </p>
                     </div>
                 </div>
@@ -164,11 +164,11 @@ export default function Sidebar({ user, className, onNavigate }: SidebarProps) {
                 <form action="/logout" method="POST">
                     <button
                         type="submit"
-                        title={isCollapsed ? "Sign Out" : ''}
+                        title={isCollapsed ? "Cerrar Sesión" : ''}
                         className={`flex items-center w-full ${isCollapsed ? 'justify-center px-2' : 'px-4'} py-3 text-sm font-medium text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700 rounded-lg transition-colors`}
                     >
                         <LogOut className={`w-5 h-5 ${isCollapsed ? '' : 'mr-3'}`} />
-                        {!isCollapsed && <span>Sign Out</span>}
+                        {!isCollapsed && <span>Cerrar Sesión</span>}
                     </button>
                 </form>
             </div>

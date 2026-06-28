@@ -34,10 +34,10 @@ export function InlinePrioritySelect({ ticketId, priority, canEdit }: InlinePrio
             if (result.error) {
                 toast.error(result.error)
             } else {
-                toast.success('Priority updated')
+                toast.success('Prioridad actualizada')
             }
         } catch (error) {
-            toast.error('Failed to update priority')
+            toast.error('Error al actualizar la prioridad')
         } finally {
             setIsUpdating(false)
         }

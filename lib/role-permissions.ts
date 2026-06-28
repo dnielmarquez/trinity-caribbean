@@ -59,3 +59,11 @@ export const ROLE_PERMISSIONS = {
         canViewAnalytics: false,
     },
 } as const
+
+export const ROLE_LABELS: Record<UserRole, string> = {
+    admin: 'Administrador',
+    sub_director: 'Subdirector',
+    maintenance: 'Mantenimiento',
+    housekeeper: 'Camarista/Limpieza',
+    reporter: 'Reportero',
+}

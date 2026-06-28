@@ -33,7 +33,7 @@ export default async function PreventivePage({ searchParams }: PreventivePagePro
         return (
             <div className="p-8">
                 <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">
-                    Error loading preventive tasks: {tasksRes.error}
+                    Error al cargar tareas preventivas: {tasksRes.error}
                 </div>
             </div>
         )
@@ -48,10 +48,10 @@ export default async function PreventivePage({ searchParams }: PreventivePagePro
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                 <div>
                     <h1 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white">
-                        Preventive Maintenance
+                        Mantenimiento Preventivo
                     </h1>
                     <p className="text-sm md:text-base text-gray-600 dark:text-gray-400 mt-1">
-                        Manage recurring schedules for AC and Fumigation
+                        Gestione tareas recurrentes de aire acondicionado y fumigación
                     </p>
                 </div>
                 <PreventiveListHeader

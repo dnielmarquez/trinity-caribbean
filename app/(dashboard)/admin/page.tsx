@@ -50,29 +50,29 @@ export default async function AdminPage() {
         <div className="p-4 md:p-6 max-w-6xl mx-auto space-y-6">
             <div>
                 <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
-                    Admin Panel
+                    Panel de Administración
                 </h1>
                 <p className="text-gray-600 dark:text-gray-400 mt-1">
-                    System management and configuration
+                    Gestión y configuración del sistema
                 </p>
             </div>
 
             {/* Stats Overview */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow">
-                    <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Total Users</p>
+                    <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Usuarios Totales</p>
                     <p className="text-3xl font-bold text-gray-900 dark:text-white mt-2">
                         {profiles?.length || 0}
                     </p>
                 </div>
                 <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow">
-                    <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Total Tickets</p>
+                    <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Tickets Totales</p>
                     <p className="text-3xl font-bold text-gray-900 dark:text-white mt-2">
                         {ticketsCount || 0}
                     </p>
                 </div>
                 <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow">
-                    <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Total Properties</p>
+                    <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Propiedades Totales</p>
                     <p className="text-3xl font-bold text-gray-900 dark:text-white mt-2">
                         {properties?.length || 0}
                     </p>

@@ -59,7 +59,7 @@ export function TicketExpenses({ ticketId, isEditable = false }: TicketExpensesP
         if (result.error) {
             toast.error(result.error)
         } else {
-            toast.success('Expense added')
+            toast.success('Gasto agregado')
             setDescription('')
             setAmount('')
             setFile(null)
@@ -69,31 +69,31 @@ export function TicketExpenses({ ticketId, isEditable = false }: TicketExpensesP
     }
 
     const handleDelete = async (id: string) => {
-        if (!confirm('Are you sure you want to delete this expense?')) return
+        if (!confirm('¿Está seguro de que desea eliminar este gasto?')) return
 
         const result = await deleteExpense(id, ticketId)
         if (result.error) {
             toast.error(result.error)
         } else {
-            toast.success('Expense removed')
+            toast.success('Gasto eliminado')
             loadExpenses()
         }
     }
 
     const total = expenses.reduce((sum, exp) => sum + Number(exp.amount), 0)
 
-    if (loading) return <div>Loading expenses...</div>
+    if (loading) return <div>Cargando gastos...</div>
 
     return (
         <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
             <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center justify-between">
-                <span>Expenses & Costs</span>
+                <span>Gastos y Costos</span>
                 <span className="text-xl font-bold text-green-600">${total.toFixed(2)}</span>
             </h2>
 
             <div className="space-y-4 mb-6">
                 {expenses.length === 0 ? (
-                    <p className="text-sm text-gray-500 italic">No expenses recorded yet.</p>
+                    <p className="text-sm text-gray-500 italic">Aún no hay gastos registrados.</p>
                 ) : (
                     <div className="space-y-3">
                         {expenses.map((expense) => (
@@ -107,14 +107,14 @@ export function TicketExpenses({ ticketId, isEditable = false }: TicketExpensesP
                                                 target="_blank"
                                                 rel="noreferrer"
                                                 className="text-blue-500 hover:text-blue-600"
-                                                title="View Receipt/Image"
+                                                title="Ver Recibo/Imagen"
                                             >
                                                 <ImageIcon className="w-4 h-4" />
                                             </a>
                                         )}
                                     </div>
                                     <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                                        Added by {expense.created_by_profile?.full_name || 'User'} • {new Date(expense.created_at).toLocaleDateString()}
+                                        Agregado por {expense.created_by_profile?.full_name || 'Usuario'} • {new Date(expense.created_at).toLocaleDateString()}
                                     </div>
                                 </div>
                                 <div className="flex items-center gap-4">
@@ -123,7 +123,7 @@ export function TicketExpenses({ ticketId, isEditable = false }: TicketExpensesP
                                         <button
                                             onClick={() => handleDelete(expense.id)}
                                             className="text-red-500 hover:text-red-600 transition-colors p-1"
-                                            title="Remove expense"
+                                            title="Eliminar gasto"
                                         >
                                             <Trash2 className="w-4 h-4" />
                                         </button>
@@ -137,11 +137,11 @@ export function TicketExpenses({ ticketId, isEditable = false }: TicketExpensesP
 
             {isEditable && (
                 <form onSubmit={handleAdd} className="border-t border-gray-100 dark:border-gray-700 pt-4 mt-4">
-                    <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">Add New Expense</h3>
+                    <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">Agregar Nuevo Gasto</h3>
                     <div className="flex flex-col gap-3">
                         <div className="flex gap-2">
                             <Input
-                                placeholder="Description (e.g. Paint cans)"
+                                placeholder="Descripción (ej. Latas de pintura)"
                                 value={description}
                                 onChange={e => setDescription(e.target.value)}
                                 className="flex-1"
@@ -178,7 +178,7 @@ export function TicketExpenses({ ticketId, isEditable = false }: TicketExpensesP
                                         }`}
                                 >
                                     <Paperclip className="w-4 h-4" />
-                                    {file ? 'Media selected' : 'Attach Media'}
+                                    {file ? 'Archivo seleccionado' : 'Adjuntar Archivo'}
                                 </label>
                             </div>
                             {file && (
@@ -187,12 +187,12 @@ export function TicketExpenses({ ticketId, isEditable = false }: TicketExpensesP
                                     onClick={() => setFile(null)}
                                     className="text-gray-500 hover:text-red-500 text-sm"
                                 >
-                                    Clear
+                                    Limpiar
                                 </button>
                             )}
                             <div className="flex-1" />
                             <Button type="submit" disabled={adding || !description || !amount}>
-                                {adding ? 'Adding...' : 'Add Expense'}
+                                {adding ? 'Agregando...' : 'Agregar Gasto'}
                             </Button>
                         </div>
                     </div>

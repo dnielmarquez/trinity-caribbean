@@ -1,4 +1,5 @@
 import { formatDistanceToNow, differenceInHours, differenceInDays, format } from 'date-fns'
+import { es } from 'date-fns/locale'
 
 /**
  * Calculate the age/SLA of a ticket in a human-readable format
@@ -15,11 +16,11 @@ export function calculateTicketAge(createdAt: string): {
 
     let label: string
     if (hours < 1) {
-        label = 'Just now'
+        label = 'Hace un momento'
     } else if (hours < 24) {
-        label = `${hours}h ago`
+        label = `Hace ${hours}h`
     } else {
-        label = `${days}d ago`
+        label = `Hace ${days}d`
     }
 
     // Consider tickets over 48 hours old as potentially overdue
@@ -32,8 +33,8 @@ export function calculateTicketAge(createdAt: string): {
  * Format a date for display
  */
 export function formatDate(date: string | null | undefined): string {
-    if (!date) return 'N/A'
-    return formatDistanceToNow(new Date(date), { addSuffix: true })
+    if (!date) return 'N/D'
+    return formatDistanceToNow(new Date(date), { addSuffix: true, locale: es })
 }
 
 /**
@@ -41,8 +42,8 @@ export function formatDate(date: string | null | undefined): string {
  * e.g. "Oct 12, 2023 2:30 PM"
  */
 export function formatDateTime(date: string | null | undefined): string {
-    if (!date) return 'N/A'
-    return format(new Date(date), 'PP p') // 'PP' = Oct 12, 2023, 'p' = 12:00 PM
+    if (!date) return 'N/D'
+    return format(new Date(date), 'PP p', { locale: es }) // 'PP' = Oct 12, 2023, 'p' = 12:00 PM
 }
 
 /**

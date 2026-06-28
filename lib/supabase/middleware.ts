@@ -65,7 +65,7 @@ export async function updateSession(request: NextRequest) {
 
         if (role === 'reporter') {
             const path = request.nextUrl.pathname
-            const allowedPaths = ['/cleaning-check', '/logout', '/login']
+            const allowedPaths = ['/cleaning-check', '/logout', '/login', '/auth']
             const isAllowed = allowedPaths.some(p => path.startsWith(p))
 
             if (!isAllowed && path !== '/') { // Allow root? or redirect root?
@@ -84,7 +84,7 @@ export async function updateSession(request: NextRequest) {
         } else if (role === 'maintenance') {
             const path = request.nextUrl.pathname
             // Allow maintenance specific routes and general auth/api routes
-            const allowedPaths = ['/maintenance', '/tickets', '/logout', '/login', '/api']
+            const allowedPaths = ['/maintenance', '/tickets', '/logout', '/login', '/api', '/auth']
             const isAllowed = allowedPaths.some(p => path.startsWith(p))
 
             if (!isAllowed && path !== '/') {

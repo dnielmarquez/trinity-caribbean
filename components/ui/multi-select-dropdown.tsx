@@ -85,7 +85,7 @@ export function MultiSelectDropdown({
                                 className="w-full justify-center text-xs h-8"
                                 onClick={() => onChange([])}
                             >
-                                Clear filters
+                                Limpiar filtros
                             </Button>
                         </div>
                     </>

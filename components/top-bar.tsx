@@ -59,7 +59,7 @@ export function TopBar({ onMenuClick }: TopBarProps) {
 
                 <div className="flex items-center gap-2 text-gray-500 dark:text-gray-400">
                     <Building2 className="w-5 h-5" />
-                    <span className="text-sm font-medium hidden sm:inline">Property Context:</span>
+                    <span className="text-sm font-medium hidden sm:inline">Contexto de Propiedad:</span>
                 </div>
                 <div className="relative">
                     <select
@@ -74,7 +74,7 @@ export function TopBar({ onMenuClick }: TopBarProps) {
                             "cursor-pointer"
                         )}
                     >
-                        <option value="all">All Properties</option>
+                        <option value="all">Todas las Propiedades</option>
                         {properties.map((property) => (
                             <option key={property.id} value={property.id}>
                                 {property.name}

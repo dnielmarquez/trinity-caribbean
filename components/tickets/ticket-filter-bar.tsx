@@ -124,7 +124,7 @@ export function TicketFilterBar({ properties, staff }: TicketFilterBarProps) {
                 <div className="relative flex-grow">
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4" />
                     <Input
-                        placeholder="Search tickets..."
+                        placeholder="Buscar tickets..."
                         className="pl-10"
                         value={search}
                         onChange={(e) => setSearch(e.target.value)}
@@ -135,35 +135,35 @@ export function TicketFilterBar({ properties, staff }: TicketFilterBarProps) {
                 {/* Filter Controls */}
                 <div className="grid grid-cols-2 md:grid-cols-5 gap-4 flex-shrink-0">
                     <MultiSelectDropdown
-                        title="Properties"
+                        title="Propiedades"
                         options={properties.map(p => ({ label: p.name, value: p.id }))}
                         selectedValues={propertyIds}
                         onChange={setPropertyIds}
                     />
 
                     <MultiSelectDropdown
-                        title="Assigned To"
-                        options={staff?.map(s => ({ label: s.full_name || 'Unknown', value: s.id })) || []}
+                        title="Asignado A"
+                        options={staff?.map(s => ({ label: s.full_name || 'Desconocido', value: s.id })) || []}
                         selectedValues={assignedTo}
                         onChange={setAssignedTo}
                     />
 
                     <MultiSelectDropdown
-                        title="Category"
+                        title="Categoría"
                         options={Object.entries(CATEGORIES).map(([id, config]) => ({ label: config.label, value: id }))}
                         selectedValues={categories}
                         onChange={setCategories}
                     />
 
                     <MultiSelectDropdown
-                        title="Status"
+                        title="Estado"
                         options={Object.entries(STATUSES).map(([id, config]) => ({ label: config.label, value: id }))}
                         selectedValues={statuses}
                         onChange={setStatuses}
                     />
 
                     <MultiSelectDropdown
-                        title="Priority"
+                        title="Prioridad"
                         options={Object.entries(PRIORITIES).map(([id, config]) => ({ label: config.label, value: id }))}
                         selectedValues={priorities}
                         onChange={setPriorities}
@@ -173,9 +173,9 @@ export function TicketFilterBar({ properties, staff }: TicketFilterBarProps) {
                 <div className="flex gap-2">
                     <Button onClick={applyFilters} className="flex-grow md:flex-grow-0">
                         <Filter className="w-4 h-4 mr-2" />
-                        Apply
+                        Aplicar
                     </Button>
-                    <Button variant="outline" onClick={clearFilters} title="Clear all filters">
+                    <Button variant="outline" onClick={clearFilters} title="Limpiar todos los filtros">
                         <X className="w-4 h-4" />
                     </Button>
                 </div>

@@ -14,7 +14,7 @@ export function CleaningLogoutButton() {
             <button
                 onClick={() => setIsModalOpen(true)}
                 className="p-2 text-gray-500 hover:text-red-600 dark:text-gray-400 dark:hover:text-red-400 transition-colors"
-                title="Sign Out"
+                title="Cerrar Sesión"
             >
                 <LogOut className="w-6 h-6" />
             </button>
@@ -22,11 +22,11 @@ export function CleaningLogoutButton() {
             <Modal
                 isOpen={isModalOpen}
                 onClose={() => setIsModalOpen(false)}
-                title="Confirm Logout"
+                title="Confirmar Cierre de Sesión"
             >
                 <div className="space-y-6">
                     <p className="text-gray-600 dark:text-gray-400">
-                        Are you sure you want to log out? Any unsaved progress will be lost.
+                        ¿Está seguro de que desea cerrar la sesión? Se perderá cualquier progreso no guardado.
                     </p>
 
                     <div className="flex justify-end gap-3">
@@ -35,7 +35,7 @@ export function CleaningLogoutButton() {
                             onClick={() => setIsModalOpen(false)}
                             disabled={isLoading}
                         >
-                            Cancel
+                            Cancelar
                         </Button>
                         <form
                             action="/logout"
@@ -50,10 +50,10 @@ export function CleaningLogoutButton() {
                                 {isLoading ? (
                                     <>
                                         <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                                        Logging out...
+                                        Cerrando sesión...
                                     </>
                                 ) : (
-                                    'Logout'
+                                    'Cerrar Sesión'
                                 )}
                             </Button>
                         </form>

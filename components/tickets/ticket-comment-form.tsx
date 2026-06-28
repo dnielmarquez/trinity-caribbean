@@ -54,7 +54,7 @@ export function TicketCommentForm({ ticketId }: TicketCommentFormProps) {
                 )
             }
 
-            toast.success('Comment added')
+            toast.success('Comentario agregado')
             setNewComment('')
             setDraftAttachments([])
             router.refresh() // Refresh server components to show new comment
@@ -69,7 +69,7 @@ export function TicketCommentForm({ ticketId }: TicketCommentFormProps) {
 
     return (
         <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6 mt-6">
-            <h3 className="text-sm font-medium text-gray-900 dark:text-white mb-3">Add Comment</h3>
+            <h3 className="text-sm font-medium text-gray-900 dark:text-white mb-3">Agregar Comentario</h3>
 
             {/* Draft Attachments Preview */}
             {draftAttachments.length > 0 && (
@@ -99,7 +99,7 @@ export function TicketCommentForm({ ticketId }: TicketCommentFormProps) {
                     onUploadComplete={handleUploadComplete}
                 />
                 <Input
-                    placeholder="Type your comment..."
+                    placeholder="Escriba su comentario..."
                     value={newComment}
                     onChange={(e) => setNewComment(e.target.value)}
                     className="flex-1"

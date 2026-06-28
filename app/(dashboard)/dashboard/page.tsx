@@ -25,7 +25,7 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
         return (
             <div className="p-8">
                 <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">
-                    Error loading tickets: {response.error}
+                    Error al cargar los tickets: {response.error}
                 </div>
             </div>
         )
@@ -46,16 +46,16 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                 <div>
                     <h1 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white">
-                        Dashboard
+                        Tablero
                     </h1>
                     <p className="text-sm md:text-base text-gray-600 dark:text-gray-400 mt-1">
-                        Manage maintenance tickets and requests
+                        Gestionar tickets y solicitudes de mantenimiento
                     </p>
                 </div>
                 <Link href="/tickets/new" className="w-full md:w-auto">
                     <Button size="lg" className="w-full md:w-auto">
                         <Plus className="w-5 h-5 mr-2" />
-                        New Ticket
+                        Nuevo Ticket
                     </Button>
                 </Link>
             </div>
@@ -63,19 +63,19 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
             {/* Stats */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                 <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow">
-                    <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Total Tickets</p>
+                    <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Total de Tickets</p>
                     <p className="text-3xl font-bold text-gray-900 dark:text-white mt-2">{stats.total}</p>
                 </div>
                 <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow">
-                    <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Urgent</p>
+                    <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Urgentes</p>
                     <p className="text-3xl font-bold text-red-600 mt-2">{stats.urgent}</p>
                 </div>
                 <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow">
-                    <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Open</p>
+                    <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Abiertos</p>
                     <p className="text-3xl font-bold text-blue-600 mt-2">{stats.open}</p>
                 </div>
                 <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow">
-                    <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Resolved</p>
+                    <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Resueltos</p>
                     <p className="text-3xl font-bold text-green-600 mt-2">{stats.resolved}</p>
                 </div>
             </div>
@@ -83,12 +83,12 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
             {/* Tickets Table */}
             <div className="bg-white dark:bg-gray-800 rounded-lg shadow overflow-hidden">
                 <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
-                    <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Recent Tickets</h2>
+                    <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Tickets Recientes</h2>
                 </div>
 
                 {tickets.length === 0 ? (
                     <div className="p-12 text-center text-gray-500 dark:text-gray-400">
-                        No tickets found. Create your first ticket to get started.
+                        No se encontraron tickets. Cree su primer ticket para comenzar.
                     </div>
                 ) : (
                     <div className="overflow-x-auto">
@@ -96,28 +96,28 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
                             <thead className="bg-gray-50 dark:bg-gray-900">
                                 <tr>
                                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                                        Property / Unit
+                                        Propiedad / Unidad
                                     </th>
                                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                                        Category
+                                        Categoría
                                     </th>
                                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                                        Description
+                                        Descripción
                                     </th>
                                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                                        Priority
+                                        Prioridad
                                     </th>
                                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                                        Status
+                                        Estado
                                     </th>
                                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                                        Assigned To
+                                        Asignado A
                                     </th>
                                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                                        Age
+                                        Antigüedad
                                     </th>
                                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                                        Actions
+                                        Acciones
                                     </th>
                                 </tr>
                             </thead>
@@ -131,7 +131,7 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
                                         <tr key={ticket.id} className="hover:bg-gray-50 dark:hover:bg-gray-700">
                                             <td className="px-6 py-4 whitespace-nowrap">
                                                 <div className="text-sm font-medium text-gray-900 dark:text-white">
-                                                    {ticket.property?.name || 'Unknown'}
+                                                    {ticket.property?.name || 'Desconocido'}
                                                 </div>
                                                 {ticket.unit && (
                                                     <div className="text-sm text-gray-500 dark:text-gray-400">
@@ -161,7 +161,7 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
                                             <td className="px-6 py-4 whitespace-nowrap">
                                                 <div className="text-sm text-gray-900 dark:text-white">
                                                     {ticket.assigned_to?.full_name || (
-                                                        <span className="text-gray-500 italic">Unassigned</span>
+                                                        <span className="text-gray-500 italic">Sin asignar</span>
                                                     )}
                                                 </div>
                                             </td>
@@ -173,7 +173,7 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
                                             <td className="px-6 py-4 whitespace-nowrap text-sm">
                                                 <Link href={`/tickets/${ticket.id}`}>
                                                     <Button variant="ghost" size="sm">
-                                                        View
+                                                        Ver
                                                     </Button>
                                                 </Link>
                                             </td>

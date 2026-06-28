@@ -2,15 +2,29 @@
 
 import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
-import { useState } from 'react'
+import Link from 'next/link'
+import { useState, useEffect } from 'react'
 
 export default function LoginPage() {
     const [email, setEmail] = useState('')
     const [password, setPassword] = useState('')
     const [error, setError] = useState('')
+    const [successMessage, setSuccessMessage] = useState('')
     const [loading, setLoading] = useState(false)
     const router = useRouter()
     const supabase = createClient()
+
+    useEffect(() => {
+        const params = new URLSearchParams(window.location.search)
+        const errorParam = params.get('error')
+        const msgParam = params.get('message')
+        if (errorParam) {
+            setError(errorParam)
+        }
+        if (msgParam) {
+            setSuccessMessage(msgParam)
+        }
+    }, [])
 
     const handleLogin = async (e: React.FormEvent) => {
         e.preventDefault()
@@ -40,7 +54,7 @@ export default function LoginPage() {
                             Trinity Caribbean
                         </h1>
                         <p className="text-gray-600 dark:text-gray-400">
-                            Sign in to manage tickets
+                            Inicia sesión para gestionar tickets
                         </p>
                     </div>
 
@@ -50,7 +64,7 @@ export default function LoginPage() {
                                 htmlFor="email"
                                 className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
                             >
-                                Email
+                                Correo Electrónico
                             </label>
                             <input
                                 id="email"
@@ -59,17 +73,25 @@ export default function LoginPage() {
                                 onChange={(e) => setEmail(e.target.value)}
                                 required
                                 className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
-                                placeholder="you@example.com"
+                                placeholder="usuario@example.com"
                             />
                         </div>
 
                         <div>
-                            <label
-                                htmlFor="password"
-                                className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
-                            >
-                                Password
-                            </label>
+                            <div className="flex justify-between items-center mb-2">
+                                <label
+                                    htmlFor="password"
+                                    className="block text-sm font-medium text-gray-700 dark:text-gray-300"
+                                >
+                                    Contraseña
+                                </label>
+                                <Link
+                                    href="/login/forgot-password"
+                                    className="text-sm text-blue-600 hover:text-blue-500 dark:text-blue-400 dark:hover:text-blue-300 transition-colors"
+                                >
+                                    ¿Olvidó su contraseña?
+                                </Link>
+                            </div>
                             <input
                                 id="password"
                                 type="password"
@@ -81,8 +103,14 @@ export default function LoginPage() {
                             />
                         </div>
 
+                        {successMessage && (
+                            <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 text-green-700 dark:text-green-400 px-4 py-3 rounded-lg text-sm">
+                                {successMessage}
+                            </div>
+                        )}
+
                         {error && (
-                            <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-400 px-4 py-3 rounded-lg">
+                            <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-400 px-4 py-3 rounded-lg text-sm">
                                 {error}
                             </div>
                         )}
@@ -92,13 +120,13 @@ export default function LoginPage() {
                             disabled={loading}
                             className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-4 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                         >
-                            {loading ? 'Signing in...' : 'Sign In'}
+                            {loading ? 'Iniciando sesión...' : 'Iniciar Sesión'}
                         </button>
                     </form>
                 </div>
 
                 <p className="text-center text-sm text-gray-600 dark:text-gray-400 mt-6">
-                    Maintenance Management System v1.0
+                    Sistema de Gestión de Mantenimiento v1.0
                 </p>
             </div>
         </div>

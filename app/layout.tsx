@@ -7,7 +7,7 @@ const inter = Inter({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
   title: 'Trinnity Caribbean',
-  description: 'Centralized maintenance and damage report management',
+  description: 'Gestión centralizada de mantenimiento y reporte de daños',
 }
 
 export default function RootLayout({
@@ -16,7 +16,7 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="en">
+    <html lang="es">
       <body className={inter.className}>
         {children}
         <Toaster richColors position="top-right" />

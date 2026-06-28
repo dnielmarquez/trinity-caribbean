@@ -70,13 +70,13 @@ export default async function TicketsPage({ searchParams }: TicketsPageProps) {
                         Tickets
                     </h1>
                     <p className="text-gray-600 dark:text-gray-400 mt-1">
-                        {count ?? 0} tickets found
+                        {count ?? 0} tickets encontrados
                     </p>
                 </div>
                 <Link href="/tickets/new">
                     <Button>
                         <Plus className="w-4 h-4 mr-2" />
-                        New Ticket
+                        Nuevo Ticket
                     </Button>
                 </Link>
             </div>
@@ -93,22 +93,22 @@ export default async function TicketsPage({ searchParams }: TicketsPageProps) {
                                     Ticket
                                 </th>
                                 <th className="text-left py-3 px-4 text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                                    Property
+                                    Propiedad
                                 </th>
                                 <th className="text-left py-3 px-4 text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                                    Assigned To
+                                    Asignado A
                                 </th>
                                 <th className="text-left py-3 px-4 text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                                    Status
+                                    Estado
                                 </th>
                                 <th className="text-left py-3 px-4 text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                                    Priority
+                                    Prioridad
                                 </th>
                                 <th className="text-left py-3 px-4 text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                                    Created
+                                    Creado
                                 </th>
                                 <th className="text-right py-3 px-4 text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                                    Actions
+                                    Acciones
                                 </th>
                             </tr>
                         </thead>
@@ -141,7 +141,7 @@ export default async function TicketsPage({ searchParams }: TicketsPageProps) {
                                                     {ticket.property?.name}
                                                 </p>
                                                 <p className="text-xs text-gray-500 dark:text-gray-400">
-                                                    {ticket.unit?.name || 'Common Area'}
+                                                    {ticket.unit?.name || 'Área Común'}
                                                 </p>
                                             </td>
                                             <td className="py-3 px-4">
@@ -169,7 +169,7 @@ export default async function TicketsPage({ searchParams }: TicketsPageProps) {
                                             <td className="py-3 px-4">
                                                 <div className="flex flex-col">
                                                     <span className={`text-sm ${age.isOverdue ? 'text-red-600 font-semibold' : 'text-gray-900 dark:text-white'}`}>
-                                                        {age.label} ago
+                                                        {age.label}
                                                     </span>
                                                     <span className="text-xs text-gray-500 dark:text-gray-400">
                                                         {formatDate(ticket.created_at)}
@@ -178,10 +178,10 @@ export default async function TicketsPage({ searchParams }: TicketsPageProps) {
                                             </td>
                                             <td className="py-3 px-4">
                                                 <div className="flex items-center justify-end gap-2">
-                                                    <Link href={`/tickets/${ticket.id}`} title="View Ticket">
+                                                    <Link href={`/tickets/${ticket.id}`} title="Ver Ticket">
                                                         <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
                                                             <Eye className="w-4 h-4" />
-                                                            <span className="sr-only">View</span>
+                                                            <span className="sr-only">Ver</span>
                                                         </Button>
                                                     </Link>
                                                     {canEdit && staff && (
@@ -200,8 +200,8 @@ export default async function TicketsPage({ searchParams }: TicketsPageProps) {
                                 })
                             ) : (
                                 <tr>
-                                    <td colSpan={6} className="py-8 text-center text-gray-500 dark:text-gray-400">
-                                        No tickets found. Try adjusting your filters.
+                                    <td colSpan={7} className="py-8 text-center text-gray-500 dark:text-gray-400">
+                                        No se encontraron tickets. Intente ajustar los filtros.
                                     </td>
                                 </tr>
                             )}
@@ -210,10 +210,10 @@ export default async function TicketsPage({ searchParams }: TicketsPageProps) {
                 </div>
             </div>
 
-            {/* Pagination placeholder - can be implemented later if needed */}
+            {/* Pagination placeholder */}
             {totalPages && totalPages > 1 && (
                 <div className="flex justify-center gap-2 mt-4">
-                    <p className="text-sm text-gray-500">Page {page} of {totalPages}</p>
+                    <p className="text-sm text-gray-500">Página {page} de {totalPages}</p>
                 </div>
             )}
         </div>

@@ -18,9 +18,9 @@ interface CleaningCheckWizardProps {
 
 // Updated checks with explicit categories
 const CHECKS = [
-    { id: 'ac', label: 'Air Conditioner', category: 'ac' },
+    { id: 'ac', label: 'Aire Acondicionado', category: 'ac' },
     { id: 'internet', label: 'Internet', category: 'wifi' },
-    { id: 'hot_water', label: 'Hot Water', category: 'plumbing' },
+    { id: 'hot_water', label: 'Agua Caliente', category: 'plumbing' },
 ]
 
 export function CleaningCheckWizard({ properties }: CleaningCheckWizardProps) {
@@ -44,7 +44,7 @@ export function CleaningCheckWizard({ properties }: CleaningCheckWizardProps) {
         if (selectedPropertyId && selectedUnitId) {
             setStep(2)
         } else {
-            toast.error('Please select both Property and Unit')
+            toast.error('Por favor, seleccione la propiedad y la unidad')
         }
     }
 
@@ -65,7 +65,7 @@ export function CleaningCheckWizard({ properties }: CleaningCheckWizardProps) {
 
         // If nothing is wrong, just success state
         if (wrongItems.length === 0) {
-            toast.success('Inspection passed! No issues found.')
+            toast.success('¡Inspección aprobada! No se encontraron problemas.')
             setIsLoading(false)
             setStep(4)
             return
@@ -78,7 +78,7 @@ export function CleaningCheckWizard({ properties }: CleaningCheckWizardProps) {
                 type: 'corrective',
                 category: (item as any).category,
                 priority: 'urgent',
-                description: `Cleaning Check Failed: ${item.label}`,
+                description: `Control de limpieza fallido: ${item.label}`,
                 requires_spend: false,
             })
         })
@@ -92,21 +92,21 @@ export function CleaningCheckWizard({ properties }: CleaningCheckWizardProps) {
         setIsLoading(false)
 
         if (failureCount > 0) {
-            toast.error(`Failed to create ${failureCount} tickets. Please try again.`)
+            toast.error(`Error al crear ${failureCount} tickets. Por favor, inténtelo de nuevo.`)
         } else {
-            toast.success(`Report submitted. ${wrongItems.length} issue(s) reported.`)
+            toast.success(`Reporte enviado. ${wrongItems.length} problema(s) reportado(s).`)
             setStep(4)
         }
     }
 
     const handleSubmitOther = async () => {
         if (!otherDescription || otherDescription.length < 5) {
-            toast.error('Please provide a description')
+            toast.error('Por favor, proporcione una descripción')
             return
         }
 
         if (attachments.length === 0) {
-            toast.error('Please upload at least one photo or video')
+            toast.error('Por favor, suba al menos una foto o video')
             return
         }
 
@@ -128,7 +128,7 @@ export function CleaningCheckWizard({ properties }: CleaningCheckWizardProps) {
         if (result.error) {
             toast.error(result.error)
         } else {
-            toast.success('Issue reported successfully')
+            toast.success('Problema reportado con éxito')
             setStep(4)
         }
     }
@@ -158,14 +158,14 @@ export function CleaningCheckWizard({ properties }: CleaningCheckWizardProps) {
             {step > 1 && (
                 <div className="bg-white dark:bg-gray-800 p-4 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 flex items-center justify-between">
                     <div>
-                        <p className="text-xs text-gray-500 dark:text-gray-400 font-medium uppercase tracking-wide">Inspecting</p>
+                        <p className="text-xs text-gray-500 dark:text-gray-400 font-medium uppercase tracking-wide">Inspeccionando</p>
                         <p className="font-bold text-gray-900 dark:text-white leading-tight">
                             {selectedProperty?.name} <span className="text-gray-400 mx-1">•</span> {availableUnits.find(u => u.id === selectedUnitId)?.name}
                         </p>
                     </div>
                     {step === 2 && (
                         <Button variant="ghost" size="sm" onClick={() => setStep(1)} className="text-xs h-8">
-                            Change
+                            Cambiar
                         </Button>
                     )}
                 </div>
@@ -176,7 +176,7 @@ export function CleaningCheckWizard({ properties }: CleaningCheckWizardProps) {
                     <div className="space-y-4">
                         <div>
                             <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
-                                Property
+                                Propiedad
                             </label>
                             <select
                                 className="w-full p-4 text-lg bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none transition-all"
@@ -186,7 +186,7 @@ export function CleaningCheckWizard({ properties }: CleaningCheckWizardProps) {
                                     setSelectedUnitId('')
                                 }}
                             >
-                                <option value="">Select Property...</option>
+                                <option value="">Seleccionar Propiedad...</option>
                                 {properties.map(p => (
                                     <option key={p.id} value={p.id}>{p.name}</option>
                                 ))}
@@ -195,7 +195,7 @@ export function CleaningCheckWizard({ properties }: CleaningCheckWizardProps) {
 
                         <div>
                             <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
-                                Unit
+                                Unidad
                             </label>
                             <select
                                 className="w-full p-4 text-lg bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none transition-all disabled:opacity-50"
@@ -203,7 +203,7 @@ export function CleaningCheckWizard({ properties }: CleaningCheckWizardProps) {
                                 onChange={(e) => setSelectedUnitId(e.target.value)}
                                 disabled={!selectedPropertyId}
                             >
-                                <option value="">Select Unit...</option>
+                                <option value="">Seleccionar Unidad...</option>
                                 {availableUnits.map(u => (
                                     <option key={u.id} value={u.id}>{u.name}</option>
                                 ))}
@@ -217,7 +217,7 @@ export function CleaningCheckWizard({ properties }: CleaningCheckWizardProps) {
                         onClick={handleStartCheck}
                         disabled={!selectedPropertyId || !selectedUnitId}
                     >
-                        Start Inspection <ChevronRight className="ml-2 w-5 h-5" />
+                        Iniciar Inspección <ChevronRight className="ml-2 w-5 h-5" />
                     </Button>
                 </div>
             )}
@@ -250,7 +250,7 @@ export function CleaningCheckWizard({ properties }: CleaningCheckWizardProps) {
                                                     : "bg-gray-50 text-gray-600 dark:bg-gray-900 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800"
                                             )}
                                         >
-                                            <Check className="w-5 h-5" /> Good
+                                            <Check className="w-5 h-5" /> Bien
                                         </button>
                                         <button
                                             onClick={() => handleCheckSelection(check.id, 'wrong')}
@@ -261,7 +261,7 @@ export function CleaningCheckWizard({ properties }: CleaningCheckWizardProps) {
                                                     : "bg-gray-50 text-gray-600 dark:bg-gray-900 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800"
                                             )}
                                         >
-                                            <X className="w-5 h-5" /> Wrong
+                                            <X className="w-5 h-5" /> Mal
                                         </button>
                                     </div>
                                 </div>
@@ -279,10 +279,10 @@ export function CleaningCheckWizard({ properties }: CleaningCheckWizardProps) {
                             {isLoading ? (
                                 <>
                                     <Loader2 className="w-5 h-5 mr-2 animate-spin" />
-                                    Submitting...
+                                    Enviando...
                                 </>
                             ) : (
-                                'Save Report'
+                                'Guardar Reporte'
                             )}
                         </Button>
 
@@ -292,7 +292,7 @@ export function CleaningCheckWizard({ properties }: CleaningCheckWizardProps) {
                             onClick={() => setStep(3)}
                             disabled={isLoading || !allChecksAnswered}
                         >
-                            Report other issue
+                            Reportar otro problema
                         </Button>
                     </div>
                 </div>
@@ -301,14 +301,14 @@ export function CleaningCheckWizard({ properties }: CleaningCheckWizardProps) {
             {step === 3 && (
                 <div className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 space-y-6 animate-in fade-in slide-in-from-right-4">
                     <div className="flex items-center justify-between">
-                        <h2 className="text-xl font-bold text-gray-900 dark:text-white">Report Other Issue</h2>
-                        <Button variant="ghost" size="sm" onClick={() => setStep(2)}>Back</Button>
+                        <h2 className="text-xl font-bold text-gray-900 dark:text-white">Reportar Otro Problema</h2>
+                        <Button variant="ghost" size="sm" onClick={() => setStep(2)}>Atrás</Button>
                     </div>
 
                     <div className="space-y-4">
                         <div>
                             <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
-                                Category
+                                Categoría
                             </label>
                             <div className="grid grid-cols-2 gap-2">
                                 {categoryOptions.map(cat => (
@@ -331,11 +331,11 @@ export function CleaningCheckWizard({ properties }: CleaningCheckWizardProps) {
 
                         <div>
                             <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
-                                Description
+                                Descripción
                             </label>
                             <textarea
                                 className="w-full p-4 min-h-[120px] bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none transition-all resize-none"
-                                placeholder="Describe the issue..."
+                                placeholder="Describa el problema..."
                                 value={otherDescription}
                                 onChange={(e) => setOtherDescription(e.target.value)}
                             />
@@ -343,7 +343,7 @@ export function CleaningCheckWizard({ properties }: CleaningCheckWizardProps) {
 
                         <div>
                             <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
-                                Photos / Videos
+                                Fotos / Videos
                             </label>
                             <div className="flex flex-wrap gap-2">
                                 {attachments.map((att, idx) => (
@@ -376,10 +376,10 @@ export function CleaningCheckWizard({ properties }: CleaningCheckWizardProps) {
                         {isLoading ? (
                             <>
                                 <Loader2 className="w-5 h-5 mr-2 animate-spin" />
-                                Sending...
+                                Enviando...
                             </>
                         ) : (
-                            'Submit Report'
+                            'Enviar Reporte'
                         )}
                     </Button>
                 </div>
@@ -391,17 +391,17 @@ export function CleaningCheckWizard({ properties }: CleaningCheckWizardProps) {
                         <Check className="w-10 h-10 text-green-600 dark:text-green-400" />
                     </div>
                     <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2 text-center">
-                        Report Submitted
+                        Reporte Enviado
                     </h2>
                     <p className="text-gray-600 dark:text-gray-400 text-center mb-8 max-w-xs mx-auto">
-                        Thank you. Your report has been sent successfully.
+                        Gracias. Su reporte ha sido enviado con éxito.
                     </p>
 
                     <Button
                         className="w-full h-12 text-base rounded-xl"
                         onClick={handleReset}
                     >
-                        <RotateCcw className="w-4 h-4 mr-2" /> Start New Inspection
+                        <RotateCcw className="w-4 h-4 mr-2" /> Iniciar Nueva Inspección
                     </Button>
                 </div>
             )}

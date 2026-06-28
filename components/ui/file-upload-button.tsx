@@ -51,7 +51,7 @@ export function FileUploadButton({
                 onUploadComplete(result.publicUrl, isVideo ? 'video' : 'image')
             }
         } catch (error) {
-            toast.error('Failed to upload file')
+            toast.error('Error al subir el archivo')
         } finally {
             setIsUploading(false)
             // Reset input so same file can be selected again if needed
@@ -77,7 +77,7 @@ export function FileUploadButton({
                 size={size}
                 onClick={() => fileInputRef.current?.click()}
                 disabled={isUploading}
-                title={label || "Add photo or video"}
+                title={label || "Agregar foto o video"}
                 className={className || (label ? "w-full h-full flex flex-col items-center justify-center gap-1" : "")}
             >
                 {isUploading ? (
@@ -88,7 +88,7 @@ export function FileUploadButton({
                     <Camera className="w-5 h-5" />
                 )}
                 {label && <span className="text-xs font-medium">{label}</span>}
-                {!label && <span className="sr-only">Upload media</span>}
+                {!label && <span className="sr-only">Subir archivo</span>}
             </Button>
         </div>
     )

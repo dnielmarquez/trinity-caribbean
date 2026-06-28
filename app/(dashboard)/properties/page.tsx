@@ -44,7 +44,7 @@ export default async function PropertiesPage() {
         return (
             <div className="p-8">
                 <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">
-                    Error loading properties: {error.message}
+                    Error al cargar propiedades: {error.message}
                 </div>
             </div>
         )
@@ -56,10 +56,10 @@ export default async function PropertiesPage() {
             <div className="flex justify-between items-center">
                 <div>
                     <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
-                        Properties
+                        Propiedades
                     </h1>
                     <p className="text-gray-600 dark:text-gray-400 mt-1">
-                        Manage properties and units
+                        Gestione propiedades y unidades
                     </p>
                 </div>
             </div>
@@ -94,7 +94,7 @@ export default async function PropertiesPage() {
                                         </p>
                                     )}
                                     <div className="flex items-center gap-4 text-sm text-gray-500 dark:text-gray-400">
-                                        <span>{property.units?.[0]?.count || 0} units</span>
+                                        <span>{property.units?.[0]?.count || 0} unidades</span>
                                     </div>
                                 </div>
                             </div>
@@ -102,7 +102,7 @@ export default async function PropertiesPage() {
                     ))
                 ) : (
                     <div className="col-span-full p-12 text-center text-gray-500 dark:text-gray-400">
-                        No properties found
+                        No se encontraron propiedades
                     </div>
                 )}
             </div>

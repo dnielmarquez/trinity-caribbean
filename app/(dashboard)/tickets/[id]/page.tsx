@@ -10,6 +10,7 @@ import { ArrowLeft, Calendar, User, DollarSign } from 'lucide-react'
 import type { Database } from '@/types/database'
 import { TicketEditButton } from '@/components/tickets/ticket-edit-button'
 import { getCurrentUser, hasPermission } from '@/lib/rbac'
+import { ROLE_LABELS } from '@/lib/role-permissions'
 import { CommentItem } from '@/components/tickets/comment-item'
 import { TimelineItem } from '@/components/tickets/timeline-item'
 import { TicketExpenses } from '@/components/tickets/ticket-expenses'
@@ -163,7 +164,7 @@ export default async function TicketDetailPage({ params }: PageProps) {
                 <Link href="/dashboard">
                     <Button variant="ghost" size="sm" className="gap-2 -ml-2 text-gray-600 dark:text-gray-400">
                         <ArrowLeft className="w-4 h-4" />
-                        Back
+                        Volver
                     </Button>
                 </Link>
             </div>
@@ -187,7 +188,7 @@ export default async function TicketDetailPage({ params }: PageProps) {
                             {ticket.unit?.name}
                         </span>
                         <span className={`text-sm ${age.isOverdue ? 'text-red-600 font-semibold' : 'text-gray-500'}`}>
-                            Created {age.label}
+                            Creado {age.label}
                         </span>
                     </div>
                 </div>
@@ -200,7 +201,7 @@ export default async function TicketDetailPage({ params }: PageProps) {
                     {/* Description */}
                     <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
                         <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-3">
-                            Description
+                            Descripción
                         </h2>
                         <p className="text-gray-700 dark:text-gray-300 whitespace-pre-wrap">
                             {ticket.description}
@@ -208,7 +209,7 @@ export default async function TicketDetailPage({ params }: PageProps) {
                         {ticket.requires_spend && (
                             <div className="mt-4 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-3">
                                 <p className="text-sm text-yellow-800 dark:text-yellow-200 font-medium">
-                                    💰 This ticket may require spending/purchases
+                                    💰 Este ticket puede requerir gastos/compras
                                 </p>
                             </div>
                         )}
@@ -242,7 +243,7 @@ export default async function TicketDetailPage({ params }: PageProps) {
                                             rel="noopener noreferrer"
                                             className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity rounded-lg flex items-center justify-center text-white text-sm font-medium"
                                         >
-                                            View
+                                            Ver
                                         </a>
                                     </div>
                                 ))}
@@ -253,7 +254,7 @@ export default async function TicketDetailPage({ params }: PageProps) {
                     {/* Comments */}
                     <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
                         <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
-                            Comments ({comments?.length || 0})
+                            Comentarios ({comments?.length || 0})
                         </h2>
                         <div className="space-y-4 mb-4">
                             {comments && comments.length > 0 ? (
@@ -261,7 +262,7 @@ export default async function TicketDetailPage({ params }: PageProps) {
                                     <CommentItem key={comment.id} comment={comment} />
                                 ))
                             ) : (
-                                <p className="text-sm text-gray-500 dark:text-gray-400">No comments yet</p>
+                                <p className="text-sm text-gray-500 dark:text-gray-400">Aún no hay comentarios</p>
                             )}
                         </div>
                         <TicketCommentForm ticketId={id} />
@@ -275,7 +276,7 @@ export default async function TicketDetailPage({ params }: PageProps) {
                     {/* Timeline */}
                     <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
                         <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
-                            Timeline
+                            Historial
                         </h2>
                         <div className="space-y-4">
                             {timelineEvents.length > 0 ? (
@@ -283,7 +284,7 @@ export default async function TicketDetailPage({ params }: PageProps) {
                                     <TimelineItem key={log.id} log={log} />
                                 ))
                             ) : (
-                                <p className="text-sm text-gray-500 dark:text-gray-400">No activity yet</p>
+                                <p className="text-sm text-gray-500 dark:text-gray-400">Aún no hay actividad</p>
                             )}
                         </div>
                     </div>
@@ -294,23 +295,23 @@ export default async function TicketDetailPage({ params }: PageProps) {
                             <div>
                                 <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400 mb-1">
                                     <User className="w-4 h-4" />
-                                    <span>Assigned to</span>
+                                    <span>Asignado a</span>
                                 </div>
                                 <p className="text-sm font-medium text-gray-900 dark:text-white">
                                     {ticket.assigned_to.full_name}
                                 </p>
                                 <p className="text-xs text-gray-500 dark:text-gray-400 capitalize">
-                                    {ticket.assigned_to.role}
+                                    {ROLE_LABELS[ticket.assigned_to.role] || ticket.assigned_to.role}
                                 </p>
                             </div>
                         ) : (
                             <div>
                                 <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400 mb-1">
                                     <User className="w-4 h-4" />
-                                    <span>Assigned to</span>
+                                    <span>Asignado a</span>
                                 </div>
                                 <p className="text-sm text-gray-500 dark:text-gray-400 italic">
-                                    Unassigned
+                                    Sin asignar
                                 </p>
                             </div>
                         )}
@@ -331,7 +332,7 @@ export default async function TicketDetailPage({ params }: PageProps) {
                         {/* Description */}
                         <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
                             <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-3">
-                                Description
+                                Descripción
                             </h2>
                             <p className="text-gray-700 dark:text-gray-300 whitespace-pre-wrap">
                                 {ticket.description}
@@ -339,7 +340,7 @@ export default async function TicketDetailPage({ params }: PageProps) {
                             {ticket.requires_spend && (
                                 <div className="mt-4 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-3">
                                     <p className="text-sm text-yellow-800 dark:text-yellow-200 font-medium">
-                                        💰 This ticket may require spending/purchases
+                                        💰 Este ticket puede requerir gastos/compras
                                     </p>
                                 </div>
                             )}
@@ -349,7 +350,7 @@ export default async function TicketDetailPage({ params }: PageProps) {
                         {attachments && attachments.length > 0 && (
                             <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
                                 <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-3">
-                                    Evidence ({attachments.length})
+                                    Evidencias ({attachments.length})
                                 </h2>
                                 <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                                     {attachments.map((attachment) => (
@@ -373,7 +374,7 @@ export default async function TicketDetailPage({ params }: PageProps) {
                                                 rel="noopener noreferrer"
                                                 className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity rounded-lg flex items-center justify-center text-white text-sm font-medium"
                                             >
-                                                View
+                                                Ver
                                             </a>
                                         </div>
                                     ))}
@@ -384,7 +385,7 @@ export default async function TicketDetailPage({ params }: PageProps) {
                         {/* Comments */}
                         <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
                             <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
-                                Comments ({comments?.length || 0})
+                                Comentarios ({comments?.length || 0})
                             </h2>
                             <div className="space-y-4">
                                 {comments && comments.length > 0 ? (
@@ -392,7 +393,7 @@ export default async function TicketDetailPage({ params }: PageProps) {
                                         <CommentItem key={comment.id} comment={comment} />
                                     ))
                                 ) : (
-                                    <p className="text-sm text-gray-500 dark:text-gray-400">No comments yet</p>
+                                    <p className="text-sm text-gray-500 dark:text-gray-400">Aún no hay comentarios</p>
                                 )}
                             </div>
                             <TicketCommentForm ticketId={id} />
@@ -401,7 +402,7 @@ export default async function TicketDetailPage({ params }: PageProps) {
                         {/* Audit Timeline */}
                         <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
                             <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
-                                Timeline
+                                Historial
                             </h2>
                             <div className="space-y-4">
                                 {timelineEvents.length > 0 ? (
@@ -409,7 +410,7 @@ export default async function TicketDetailPage({ params }: PageProps) {
                                         <TimelineItem key={log.id} log={log} />
                                     ))
                                 ) : (
-                                    <p className="text-sm text-gray-500 dark:text-gray-400">No activity yet</p>
+                                    <p className="text-sm text-gray-500 dark:text-gray-400">Aún no hay actividad</p>
                                 )}
                             </div>
                         </div>
@@ -423,23 +424,23 @@ export default async function TicketDetailPage({ params }: PageProps) {
                                 <div>
                                     <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400 mb-1">
                                         <User className="w-4 h-4" />
-                                        <span>Assigned to</span>
+                                        <span>Asignado a</span>
                                     </div>
                                     <p className="text-sm font-medium text-gray-900 dark:text-white">
                                         {ticket.assigned_to.full_name}
                                     </p>
                                     <p className="text-xs text-gray-500 dark:text-gray-400 capitalize">
-                                        {ticket.assigned_to.role}
+                                        {ROLE_LABELS[ticket.assigned_to.role] || ticket.assigned_to.role}
                                     </p>
                                 </div>
                             ) : (
                                 <div>
                                     <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400 mb-1">
                                         <User className="w-4 h-4" />
-                                        <span>Assigned to</span>
+                                        <span>Asignado a</span>
                                     </div>
                                     <p className="text-sm text-gray-500 dark:text-gray-400 italic">
-                                        Unassigned
+                                        Sin asignar
                                     </p>
                                 </div>
                             )}

@@ -19,6 +19,7 @@ import { getUnits } from '@/actions/units' // We need to fetch units client side
 // For now, let's assume `createClient` from `lib/supabase/client` works for fetching units.
 
 import { createBrowserClient } from '@supabase/ssr'
+import { ROLE_LABELS } from '@/lib/role-permissions'
 
 type Property = Database['public']['Tables']['properties']['Row']
 type Profile = Database['public']['Tables']['profiles']['Row']
@@ -32,10 +33,10 @@ interface CreatePreventiveModalProps {
 }
 
 const CATEGORIES = [
-    { value: 'ac', label: 'Air Conditioner' },
-    { value: 'pest_control', label: 'Fumigation' },
-    { value: 'plumbing', label: 'Plumbing' }, // generic fallback items
-    { value: 'electricity', label: 'Electricity' },
+    { value: 'ac', label: 'Aire Acondicionado' },
+    { value: 'pest_control', label: 'Fumigación' },
+    { value: 'plumbing', label: 'Plomería' }, // generic fallback items
+    { value: 'electricity', label: 'Electricidad' },
 ]
 
 export function CreatePreventiveModal({ isOpen, onClose, properties, profiles }: CreatePreventiveModalProps) {
@@ -73,7 +74,7 @@ export function CreatePreventiveModal({ isOpen, onClose, properties, profiles }:
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault()
         if (!propertyId || !assignedTo || !nextDate) {
-            toast.error('Please fill in all required fields')
+            toast.error('Por favor, complete todos los campos obligatorios')
             return
         }
 
@@ -83,7 +84,7 @@ export function CreatePreventiveModal({ isOpen, onClose, properties, profiles }:
             property_id: propertyId,
             unit_id: unitId || null,
             assigned_to_user_id: assignedTo,
-            description: description || `${CATEGORY_ICONS[category]} Maintenance`,
+            description: description || `Mantenimiento de ${CATEGORY_ICONS[category] || category}`,
             recurrence_type: 'days',
             recurrence_interval: recurrenceDays,
             next_scheduled_at: new Date(nextDate).toISOString(),
@@ -94,7 +95,7 @@ export function CreatePreventiveModal({ isOpen, onClose, properties, profiles }:
         if (result.error) {
             toast.error(result.error)
         } else {
-            toast.success('Schedule created successfully')
+            toast.success('Programación creada con éxito')
             onClose()
             // Reset form
             setCategory('ac')
@@ -109,17 +110,17 @@ export function CreatePreventiveModal({ isOpen, onClose, properties, profiles }:
     }
 
     const CATEGORY_ICONS: Record<string, string> = {
-        ac: 'Air Conditioner',
-        pest_control: 'Fumigation',
+        ac: 'Aire Acondicionado',
+        pest_control: 'Fumigación',
     }
 
     return (
-        <Modal isOpen={isOpen} onClose={onClose} title="New Preventive Schedule">
+        <Modal isOpen={isOpen} onClose={onClose} title="Nueva Programación Preventiva">
             <form onSubmit={handleSubmit} className="space-y-4">
 
                 {/* Category Selection */}
                 <div>
-                    <label className="block text-sm font-medium mb-1 dark:text-gray-300">Type</label>
+                    <label className="block text-sm font-medium mb-1 dark:text-gray-300">Tipo</label>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                         {CATEGORIES.slice(0, 2).map((cat) => (
                             <button
@@ -140,28 +141,28 @@ export function CreatePreventiveModal({ isOpen, onClose, properties, profiles }:
                 {/* Property & Unit */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
-                        <label className="block text-sm font-medium mb-1 dark:text-gray-300">Property</label>
+                        <label className="block text-sm font-medium mb-1 dark:text-gray-300">Propiedad</label>
                         <select
                             className="w-full px-3 py-2 rounded-md border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900"
                             value={propertyId}
                             onChange={(e) => handlePropertyChange(e.target.value)}
                             required
                         >
-                            <option value="">Select Property</option>
+                            <option value="">Seleccionar Propiedad</option>
                             {properties.map(p => (
                                 <option key={p.id} value={p.id}>{p.name}</option>
                             ))}
                         </select>
                     </div>
                     <div>
-                        <label className="block text-sm font-medium mb-1 dark:text-gray-300">Unit (Optional)</label>
+                        <label className="block text-sm font-medium mb-1 dark:text-gray-300">Unidad (Opcional)</label>
                         <select
                             className="w-full px-3 py-2 rounded-md border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900"
                             value={unitId}
                             onChange={(e) => setUnitId(e.target.value)}
                             disabled={!propertyId || loadingUnits}
                         >
-                            <option value="">{loadingUnits ? 'Loading...' : 'Entire Property'}</option>
+                            <option value="">{loadingUnits ? 'Cargando...' : 'Toda la Propiedad'}</option>
                             {units.map(u => (
                                 <option key={u.id} value={u.id}>{u.name}</option>
                             ))}
@@ -171,16 +172,16 @@ export function CreatePreventiveModal({ isOpen, onClose, properties, profiles }:
 
                 {/* Assignment */}
                 <div>
-                    <label className="block text-sm font-medium mb-1 dark:text-gray-300">Assign To</label>
+                    <label className="block text-sm font-medium mb-1 dark:text-gray-300">Asignar A</label>
                     <select
                         className="w-full px-3 py-2 rounded-md border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900"
                         value={assignedTo}
                         onChange={(e) => setAssignedTo(e.target.value)}
                         required
                     >
-                        <option value="">Select Staff</option>
+                        <option value="">Seleccionar Personal</option>
                         {profiles.filter(p => p.role === 'maintenance' || p.role === 'admin').map(p => (
-                            <option key={p.id} value={p.id}>{p.full_name} ({p.role})</option>
+                            <option key={p.id} value={p.id}>{p.full_name} ({ROLE_LABELS[p.role as keyof typeof ROLE_LABELS] || p.role})</option>
                         ))}
                     </select>
                 </div>
@@ -188,7 +189,7 @@ export function CreatePreventiveModal({ isOpen, onClose, properties, profiles }:
                 {/* Frequency & Date */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
-                        <label className="block text-sm font-medium mb-1 dark:text-gray-300">Run Every (Days)</label>
+                        <label className="block text-sm font-medium mb-1 dark:text-gray-300">Ejecutar Cada (Días)</label>
                         <Input
                             type="number"
                             min="1"
@@ -198,7 +199,7 @@ export function CreatePreventiveModal({ isOpen, onClose, properties, profiles }:
                         />
                     </div>
                     <div>
-                        <label className="block text-sm font-medium mb-1 dark:text-gray-300">Next Run Date</label>
+                        <label className="block text-sm font-medium mb-1 dark:text-gray-300">Próxima Fecha de Ejecución</label>
                         <Input
                             type="date"
                             value={nextDate}
@@ -210,21 +211,21 @@ export function CreatePreventiveModal({ isOpen, onClose, properties, profiles }:
 
                 {/* Description */}
                 <div>
-                    <label className="block text-sm font-medium mb-1 dark:text-gray-300">Description (Optional)</label>
+                    <label className="block text-sm font-medium mb-1 dark:text-gray-300">Descripción (Opcional)</label>
                     <Input
                         value={description}
                         onChange={(e) => setDescription(e.target.value)}
-                        placeholder="e.g. Monthly maintenance check"
+                        placeholder="ej. Control de mantenimiento mensual"
                     />
                 </div>
 
                 <div className="flex justify-end gap-3 pt-4 border-t border-gray-200 dark:border-gray-700">
                     <Button type="button" variant="outline" onClick={onClose} disabled={isLoading}>
-                        Cancel
+                        Cancelar
                     </Button>
                     <Button type="submit" disabled={isLoading}>
                         {isLoading && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
-                        Create Schedule
+                        Crear Programación
                     </Button>
                 </div>
             </form>

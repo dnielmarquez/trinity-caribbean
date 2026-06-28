@@ -9,6 +9,7 @@ import { CreateUserModal } from './create-user-modal'
 import { deleteUser } from '@/actions/users'
 import { toast } from 'sonner'
 import type { Database } from '@/types/database'
+import { ROLE_LABELS } from '@/lib/role-permissions'
 
 type Profile = Database['public']['Tables']['profiles']['Row']
 
@@ -32,11 +33,11 @@ export function UsersTab({ profiles }: UsersTabProps) {
             if (result.error) {
                 toast.error(result.error)
             } else {
-                toast.success('User deleted successfully')
+                toast.success('Usuario eliminado con éxito')
                 setUserToDelete(null)
             }
         } catch (error) {
-            toast.error('Failed to delete user')
+            toast.error('Error al eliminar usuario')
         } finally {
             setIsDeleting(false)
         }
@@ -47,7 +48,7 @@ export function UsersTab({ profiles }: UsersTabProps) {
             <div className="flex justify-end">
                 <Button onClick={() => setIsCreateModalOpen(true)}>
                     <UserPlus className="w-4 h-4 mr-2" />
-                    Create User
+                    Crear Usuario
                 </Button>
             </div>
 
@@ -56,11 +57,11 @@ export function UsersTab({ profiles }: UsersTabProps) {
                     <table className="w-full">
                         <thead className="bg-gray-50 dark:bg-gray-900">
                             <tr>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Name</th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Role</th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Telegram ID</th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Created</th>
-                                <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Actions</th>
+                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Nombre</th>
+                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Rol</th>
+                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">ID de Telegram</th>
+                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Creado</th>
+                                <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Acciones</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
@@ -75,7 +76,12 @@ export function UsersTab({ profiles }: UsersTabProps) {
                                                 profile.role === 'maintenance' ? 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200' :
                                                     'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200'}
                                 `}>
-                                            {profile.role.replace('_', ' ')}
+                                            {ROLE_LABELS[profile.role] || profile.role}
+                                            {profile.role === 'maintenance' && profile.sub_role && (
+                                                <span className="normal-case ml-1 font-semibold opacity-90 text-[10px]">
+                                                    ({profile.sub_role === 'handyman' ? 'Handyman' : 'Esp. Aire Acond.'})
+                                                </span>
+                                            )}
                                         </span>
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
@@ -124,11 +130,11 @@ export function UsersTab({ profiles }: UsersTabProps) {
                 <Modal
                     isOpen={!!userToDelete}
                     onClose={() => setUserToDelete(null)}
-                    title="Delete User"
+                    title="Eliminar Usuario"
                 >
                     <div className="space-y-6">
                         <p className="text-gray-600 dark:text-gray-400">
-                            Are you sure you want to delete <strong>{userToDelete?.full_name}</strong>? This action cannot be undone.
+                            ¿Está seguro de que desea eliminar a <strong>{userToDelete?.full_name}</strong>? Esta acción no se puede deshacer.
                         </p>
                         <div className="flex justify-end gap-3">
                             <Button
@@ -136,7 +142,7 @@ export function UsersTab({ profiles }: UsersTabProps) {
                                 onClick={() => setUserToDelete(null)}
                                 disabled={isDeleting}
                             >
-                                Cancel
+                                Cancelar
                             </Button>
                             <Button
                                 variant="destructive"
@@ -146,10 +152,10 @@ export function UsersTab({ profiles }: UsersTabProps) {
                                 {isDeleting ? (
                                     <>
                                         <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                                        Deleting...
+                                        Eliminando...
                                     </>
                                 ) : (
-                                    'Delete User'
+                                    'Eliminar Usuario'
                                 )}
                             </Button>
                         </div>

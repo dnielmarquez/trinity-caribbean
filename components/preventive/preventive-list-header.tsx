@@ -21,7 +21,7 @@ export function PreventiveListHeader({ properties, profiles }: PreventiveListHea
         <>
             <Button onClick={() => setIsCreateModalOpen(true)}>
                 <Plus className="w-5 h-5 mr-2" />
-                Create Schedule
+                Crear Programación
             </Button>
 
             <CreatePreventiveModal

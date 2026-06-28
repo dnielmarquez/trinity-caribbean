@@ -23,7 +23,7 @@ export function ResolveTicketButton({ ticketId }: ResolveTicketButtonProps) {
             toast.error(result.error)
             setIsLoading(false)
         } else {
-            toast.success('Ticket marked as resolved!')
+            toast.success('¡Ticket marcado como resuelto!')
             router.refresh()
             // Keep loading true after success to prevent double clicks during refresh
         }
@@ -37,7 +37,7 @@ export function ResolveTicketButton({ ticketId }: ResolveTicketButtonProps) {
             size="lg"
         >
             <CheckCircle2 className="w-6 h-6 mr-2" />
-            {isLoading ? 'Resolving...' : 'Mark as Resolved'}
+            {isLoading ? 'Resolviendo...' : 'Marcar como Resuelto'}
         </Button>
     )
 }

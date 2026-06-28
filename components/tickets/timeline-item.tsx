@@ -1,5 +1,6 @@
 import { formatDate, formatDateTime } from '@/lib/date-utils'
 import type { Database } from '@/types/database'
+import { CATEGORIES, STATUSES, PRIORITIES } from '@/lib/categories'
 import {
     Activity,
     AlertCircle,
@@ -38,7 +39,7 @@ export function TimelineItem({ log }: TimelineItemProps) {
     }
 
     const formatValue = (val: any) => {
-        if (val === null || val === undefined) return 'None'
+        if (val === null || val === undefined) return 'Ninguno'
         if (typeof val === 'object') return JSON.stringify(val)
         return String(val)
     }
@@ -51,23 +52,27 @@ export function TimelineItem({ log }: TimelineItemProps) {
             case 'created':
                 return (
                     <span className="text-gray-600 dark:text-gray-400">
-                        Created the ticket
+                        Creó el ticket
                     </span>
                 )
             case 'status_changed':
+                const fromStatusLabel = STATUSES[from?.status as keyof typeof STATUSES]?.label || from?.status || 'Ninguno'
+                const toStatusLabel = STATUSES[to?.status as keyof typeof STATUSES]?.label || to?.status
                 return (
                     <span className="flex items-center gap-1 text-gray-600 dark:text-gray-400">
-                        Changed status from <span className="font-medium text-gray-900 dark:text-white capitalize">{from?.status?.replace('_', ' ') || 'None'}</span>
+                        Cambió el estado de <span className="font-medium text-gray-900 dark:text-white capitalize">{fromStatusLabel}</span>
                         <ArrowRight className="w-3 h-3" />
-                        <span className="font-medium text-gray-900 dark:text-white capitalize">{to?.status?.replace('_', ' ')}</span>
+                        <span className="font-medium text-gray-900 dark:text-white capitalize">{toStatusLabel}</span>
                     </span>
                 )
             case 'priority_changed':
+                const fromPriorityLabel = PRIORITIES[from?.priority as keyof typeof PRIORITIES]?.label || from?.priority || 'Ninguna'
+                const toPriorityLabel = PRIORITIES[to?.priority as keyof typeof PRIORITIES]?.label || to?.priority
                 return (
                     <span className="flex items-center gap-1 text-gray-600 dark:text-gray-400">
-                        Changed priority from <span className="font-medium text-gray-900 dark:text-white capitalize">{from?.priority || 'None'}</span>
+                        Cambió la prioridad de <span className="font-medium text-gray-900 dark:text-white capitalize">{fromPriorityLabel}</span>
                         <ArrowRight className="w-3 h-3" />
-                        <span className="font-medium text-gray-900 dark:text-white capitalize">{to?.priority}</span>
+                        <span className="font-medium text-gray-900 dark:text-white capitalize">{toPriorityLabel}</span>
                     </span>
                 )
             case 'assigned':
@@ -76,54 +81,56 @@ export function TimelineItem({ log }: TimelineItemProps) {
                     <span className="text-gray-600 dark:text-gray-400">
                         {to?.assigned_to_user_id ? (
                             <>
-                                Assigned to <span className="font-medium text-gray-900 dark:text-white">{to.assigned_to_name || 'User'}</span>
+                                Asignado a <span className="font-medium text-gray-900 dark:text-white">{to.assigned_to_name || 'Usuario'}</span>
                             </>
                         ) : (
-                            'Unassigned ticket'
+                            'Ticket sin asignar'
                         )}
                     </span>
                 )
             case 'category_changed':
+                const fromCategoryLabel = CATEGORIES[from?.category as keyof typeof CATEGORIES]?.label || from?.category || 'Ninguna'
+                const toCategoryLabel = CATEGORIES[to?.category as keyof typeof CATEGORIES]?.label || to?.category
                 return (
                     <span className="flex items-center gap-1 text-gray-600 dark:text-gray-400">
-                        Changed category from <span className="font-medium text-gray-900 dark:text-white capitalize">{from?.category || 'None'}</span>
+                        Cambió la categoría de <span className="font-medium text-gray-900 dark:text-white capitalize">{fromCategoryLabel}</span>
                         <ArrowRight className="w-3 h-3" />
-                        <span className="font-medium text-gray-900 dark:text-white capitalize">{to?.category}</span>
+                        <span className="font-medium text-gray-900 dark:text-white capitalize">{toCategoryLabel}</span>
                     </span>
                 )
             case 'description_changed':
                 return (
                     <span className="text-gray-600 dark:text-gray-400">
-                        Updated the description
+                        Actualizó la descripción
                     </span>
                 )
             case 'comment_added':
                 return (
                     <span className="text-gray-600 dark:text-gray-400">
-                        Added a comment: <span className="italic">"{to?.body || ''}"</span>
+                        Agregó un comentario: <span className="italic">"{to?.body || ''}"</span>
                     </span>
                 )
             case 'evidence_added':
                 return (
                     <span className="text-gray-600 dark:text-gray-400">
-                        Uploaded evidence ({to?.url ? (
+                        Subió evidencia ({to?.url ? (
                             <a
                                 href={to.url}
                                 target="_blank"
                                 rel="noopener noreferrer"
                                 className="text-blue-600 hover:underline"
                             >
-                                {to?.kind || 'file'}
+                                {to?.kind || 'archivo'}
                             </a>
                         ) : (
-                            to?.kind || 'file'
+                            to?.kind || 'archivo'
                         )})
                     </span>
                 )
             case 'expense_added':
                 return (
                     <span className="text-gray-600 dark:text-gray-400">
-                        Added expense: <span className="font-medium text-gray-900 dark:text-white">{to?.description}</span>
+                        Agregó gasto: <span className="font-medium text-gray-900 dark:text-white">{to?.description}</span>
                         {' '}-{' '}
                         <span className="font-bold text-green-600">${Number(to?.amount || 0).toFixed(2)}</span>
                         {to?.attachment_url && (
@@ -133,7 +140,7 @@ export function TimelineItem({ log }: TimelineItemProps) {
                                 rel="noopener noreferrer"
                                 className="ml-2 text-blue-600 hover:text-blue-800"
                             >
-                                (Receipt)
+                                (Recibo)
                             </a>
                         )}
                     </span>
@@ -141,7 +148,7 @@ export function TimelineItem({ log }: TimelineItemProps) {
             case 'expense_removed':
                 return (
                     <span className="text-gray-600 dark:text-gray-400">
-                        Removed expense: <span className="line-through">{from?.description}</span>
+                        Eliminó gasto: <span className="line-through">{from?.description}</span>
                         {' '}(${Number(from?.amount || 0).toFixed(2)})
                     </span>
                 )
@@ -165,7 +172,7 @@ export function TimelineItem({ log }: TimelineItemProps) {
             <div className="flex-1 pb-6">
                 <div className="flex items-center gap-2 mb-1">
                     <span className="text-sm font-medium text-gray-900 dark:text-white">
-                        {log.actor?.full_name || 'System'}
+                        {log.actor?.full_name || 'Sistema'}
                     </span>
                     <span className="text-xs text-gray-500 dark:text-gray-400 flex items-center gap-1">
                         <Clock className="w-3 h-3" />

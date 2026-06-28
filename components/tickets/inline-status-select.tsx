@@ -34,10 +34,10 @@ export function InlineStatusSelect({ ticketId, status, canEdit }: InlineStatusSe
             if (result.error) {
                 toast.error(result.error)
             } else {
-                toast.success('Status updated')
+                toast.success('Estado actualizado')
             }
         } catch (error) {
-            toast.error('Failed to update status')
+            toast.error('Error al actualizar el estado')
         } finally {
             setIsUpdating(false)
         }

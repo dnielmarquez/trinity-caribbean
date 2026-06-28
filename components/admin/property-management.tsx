@@ -50,7 +50,7 @@ export function PropertyManagement({ properties }: PropertyManagementProps) {
         if (error) {
             toast.error(error)
         } else {
-            toast.success('Property created successfully')
+            toast.success('Propiedad creada con éxito')
             closeModals()
         }
     }
@@ -65,13 +65,13 @@ export function PropertyManagement({ properties }: PropertyManagementProps) {
         if (error) {
             toast.error(error)
         } else {
-            toast.success('Property updated successfully')
+            toast.success('Propiedad actualizada con éxito')
             closeModals()
         }
     }
 
     const handleDelete = async (id: string, name: string) => {
-        if (!confirm(`Are you sure you want to delete "${name}"? This will fail if there are units or tickets associated with it.`)) {
+        if (!confirm(`¿Está seguro de que desea eliminar "${name}"? Esto fallará si hay unidades o tickets asociados.`)) {
             return
         }
 
@@ -82,17 +82,17 @@ export function PropertyManagement({ properties }: PropertyManagementProps) {
         if (error) {
             toast.error(error)
         } else {
-            toast.success('Property deleted successfully')
+            toast.success('Propiedad eliminada con éxito')
         }
     }
 
     return (
         <div className="space-y-4">
             <div className="flex justify-between items-center">
-                <h2 className="text-xl font-semibold text-gray-900 dark:text-white">Properties</h2>
+                <h2 className="text-xl font-semibold text-gray-900 dark:text-white">Propiedades</h2>
                 <Button onClick={openAddModal} className="flex items-center gap-2">
                     <Plus size={16} />
-                    Add Property
+                    Agregar Propiedad
                 </Button>
             </div>
 
@@ -101,9 +101,9 @@ export function PropertyManagement({ properties }: PropertyManagementProps) {
                     <table className="w-full">
                         <thead className="bg-gray-50 dark:bg-gray-900">
                             <tr>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Name</th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Address</th>
-                                <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Actions</th>
+                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Nombre</th>
+                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Dirección</th>
+                                <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Acciones</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
@@ -142,33 +142,33 @@ export function PropertyManagement({ properties }: PropertyManagementProps) {
             <Modal
                 isOpen={isAddModalOpen}
                 onClose={closeModals}
-                title="Add New Property"
+                title="Agregar Nueva Propiedad"
             >
                 <form onSubmit={handleCreate} className="space-y-4">
                     <div className="space-y-2">
-                        <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Name</label>
+                        <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Nombre</label>
                         <Input
-                            placeholder="e.g. Ocean View"
+                            placeholder="ej. Ocean View"
                             value={name}
                             onChange={(e) => setName(e.target.value)}
                             required
                         />
                     </div>
                     <div className="space-y-2">
-                        <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Address (Optional)</label>
+                        <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Dirección (Opcional)</label>
                         <Input
-                            placeholder="123 Beach Rd"
+                            placeholder="ej. Calle 123"
                             value={address}
                             onChange={(e) => setAddress(e.target.value)}
                         />
                     </div>
                     <div className="flex justify-end gap-3 mt-6">
                         <Button type="button" variant="outline" onClick={closeModals}>
-                            Cancel
+                            Cancelar
                         </Button>
                         <Button type="submit" disabled={isLoading}>
                             {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                            Create Property
+                            Crear Propiedad
                         </Button>
                     </div>
                 </form>
@@ -178,33 +178,33 @@ export function PropertyManagement({ properties }: PropertyManagementProps) {
             <Modal
                 isOpen={!!editingProperty}
                 onClose={closeModals}
-                title="Edit Property"
+                title="Editar Propiedad"
             >
                 <form onSubmit={handleUpdate} className="space-y-4">
                     <div className="space-y-2">
-                        <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Name</label>
+                        <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Nombre</label>
                         <Input
-                            placeholder="e.g. Ocean View"
+                            placeholder="ej. Ocean View"
                             value={name}
                             onChange={(e) => setName(e.target.value)}
                             required
                         />
                     </div>
                     <div className="space-y-2">
-                        <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Address (Optional)</label>
+                        <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Dirección (Opcional)</label>
                         <Input
-                            placeholder="123 Beach Rd"
+                            placeholder="ej. Calle 123"
                             value={address}
                             onChange={(e) => setAddress(e.target.value)}
                         />
                     </div>
                     <div className="flex justify-end gap-3 mt-6">
                         <Button type="button" variant="outline" onClick={closeModals}>
-                            Cancel
+                            Cancelar
                         </Button>
                         <Button type="submit" disabled={isLoading}>
                             {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                            Save Changes
+                            Guardar Cambios
                         </Button>
                     </div>
                 </form>

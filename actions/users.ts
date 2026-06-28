@@ -18,10 +18,13 @@ export async function createUser(formData: FormData) {
     const password = formData.get('password') as string
     const fullName = formData.get('fullName') as string
     const role = formData.get('role') as string
+    const subRole = formData.get('subRole') as string
 
     if (!email || !password || !fullName || !role) {
         return { error: 'Missing required fields' }
     }
+
+    const sub_role = (role === 'maintenance' && (subRole === 'handyman' || subRole === 'ac-specialist') ? subRole : null) as 'handyman' | 'ac-specialist' | null
 
     const supabaseAdmin = createServiceClient()
 
@@ -44,16 +47,6 @@ export async function createUser(formData: FormData) {
         return { error: 'Failed to create user' }
     }
 
-    // 2. Update Profile Role
-    // The profile might be created by a trigger on public.users, or we might need to create it manually depending on setup.
-    // Usually triggers handle it. But we need to update the role. 
-    // Wait for a moment or try to update directly. 
-    // If we rely on trigger, it initiates as 'reporter' usually. 
-    // Let's force update the profile.
-
-    // Note: If using a trigger, there might be a race condition. 
-    // But since we are using the admin client, we can upsert the profile.
-
     // 2. Update/Create Profile
     // We force an upsert to ensure the profile exists and has the correct role,
     // regardless of whether a trigger created it or not.
@@ -64,7 +57,8 @@ export async function createUser(formData: FormData) {
         .upsert({
             id: authData.user.id,
             full_name: fullName,
-            role: role,
+            role: role as any,
+            sub_role: sub_role,
             updated_at: new Date().toISOString(),
         })
 

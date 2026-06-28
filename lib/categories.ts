@@ -26,12 +26,12 @@ interface CategoryConfig {
 
 export const CATEGORIES: Record<TicketCategory, CategoryConfig> = {
     ac: {
-        label: 'Air Conditioning',
+        label: 'Aire Acondicionado',
         icon: AirVent,
         color: 'text-cyan-600',
     },
     plumbing: {
-        label: 'Plumbing',
+        label: 'Plomería',
         icon: Droplet,
         color: 'text-blue-600',
     },
@@ -41,42 +41,42 @@ export const CATEGORIES: Record<TicketCategory, CategoryConfig> = {
         color: 'text-purple-600',
     },
     electricity: {
-        label: 'Electricity',
+        label: 'Electricidad',
         icon: Zap,
         color: 'text-yellow-600',
     },
     locks: {
-        label: 'Locks & Security',
+        label: 'Cerraduras y Seguridad',
         icon: Lock,
         color: 'text-red-600',
     },
     furniture: {
-        label: 'Furniture',
+        label: 'Muebles',
         icon: Sofa,
         color: 'text-amber-600',
     },
     appliances: {
-        label: 'Appliances',
+        label: 'Electrodomésticos',
         icon: Home,
         color: 'text-gray-600',
     },
     painting: {
-        label: 'Painting',
+        label: 'Pintura',
         icon: Brush,
         color: 'text-pink-600',
     },
     cleaning: {
-        label: 'Cleaning',
+        label: 'Limpieza',
         icon: Wrench,
         color: 'text-teal-600',
     },
     pest_control: {
-        label: 'Pest Control',
+        label: 'Control de Plagas',
         icon: Bug,
         color: 'text-green-600',
     },
     other: {
-        label: 'Other',
+        label: 'Otro',
         icon: Wrench,
         color: 'text-gray-500',
     },
@@ -84,22 +84,22 @@ export const CATEGORIES: Record<TicketCategory, CategoryConfig> = {
 
 export const PRIORITIES: Record<TicketPriority, { label: string; color: string; bgColor: string }> = {
     low: {
-        label: 'Low',
+        label: 'Baja',
         color: 'text-gray-700',
         bgColor: 'bg-gray-100 dark:bg-gray-700',
     },
     medium: {
-        label: 'Medium',
+        label: 'Media',
         color: 'text-blue-700',
         bgColor: 'bg-blue-100 dark:bg-blue-900',
     },
     high: {
-        label: 'High',
+        label: 'Alta',
         color: 'text-orange-700',
         bgColor: 'bg-orange-100 dark:bg-orange-900',
     },
     urgent: {
-        label: 'Urgent',
+        label: 'Urgente',
         color: 'text-red-700',
         bgColor: 'bg-red-100 dark:bg-red-900',
     },
@@ -107,27 +107,27 @@ export const PRIORITIES: Record<TicketPriority, { label: string; color: string; 
 
 export const STATUSES: Record<TicketStatus, { label: string; color: string; bgColor: string }> = {
     reported: {
-        label: 'Reported',
+        label: 'Reportado',
         color: 'text-purple-700',
         bgColor: 'bg-purple-100 dark:bg-purple-900',
     },
     assigned: {
-        label: 'Assigned',
+        label: 'Asignado',
         color: 'text-blue-700',
         bgColor: 'bg-blue-100 dark:bg-blue-900',
     },
     in_progress: {
-        label: 'In Progress',
+        label: 'En Progreso',
         color: 'text-yellow-700',
         bgColor: 'bg-yellow-100 dark:bg-yellow-900',
     },
     resolved: {
-        label: 'Resolved',
+        label: 'Resuelto',
         color: 'text-green-700',
         bgColor: 'bg-green-100 dark:bg-green-900',
     },
     closed: {
-        label: 'Closed',
+        label: 'Cerrado',
         color: 'text-gray-700',
         bgColor: 'bg-gray-100 dark:bg-gray-700',
     },

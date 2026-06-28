@@ -23,9 +23,9 @@ export function AdminTabs({ profiles, properties, units }: AdminTabsProps) {
     const [activeTab, setActiveTab] = useState<'users' | 'properties' | 'units'>('users')
 
     const tabs = [
-        { id: 'users', label: 'Users & Roles', icon: Users },
-        { id: 'properties', label: 'Properties', icon: Building },
-        { id: 'units', label: 'Units', icon: DoorOpen },
+        { id: 'users', label: 'Usuarios y Roles', icon: Users },
+        { id: 'properties', label: 'Propiedades', icon: Building },
+        { id: 'units', label: 'Unidades', icon: DoorOpen },
     ] as const
 
     return (

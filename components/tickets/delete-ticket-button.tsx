@@ -26,7 +26,7 @@ export function DeleteTicketButton({ ticketId, className }: DeleteTicketButtonPr
         if (result.error) {
             toast.error(result.error)
         } else {
-            toast.success('Ticket deleted successfully')
+            toast.success('Ticket eliminado con éxito')
             setIsModalOpen(false)
         }
     }
@@ -38,7 +38,7 @@ export function DeleteTicketButton({ ticketId, className }: DeleteTicketButtonPr
                 size="sm"
                 className={`text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 ${className}`}
                 onClick={() => setIsModalOpen(true)}
-                title="Delete Ticket"
+                title="Eliminar Ticket"
             >
                 <Trash2 size={16} />
             </Button>
@@ -46,16 +46,16 @@ export function DeleteTicketButton({ ticketId, className }: DeleteTicketButtonPr
             <Modal
                 isOpen={isModalOpen}
                 onClose={() => !isLoading && setIsModalOpen(false)}
-                title="Delete Ticket"
+                title="Eliminar Ticket"
             >
                 <div className="space-y-4">
                     <div className="flex items-center gap-3 text-amber-600 bg-amber-50 dark:bg-amber-900/20 dark:text-amber-500 p-3 rounded-lg">
                         <AlertTriangle className="w-5 h-5 flex-shrink-0" />
-                        <p className="text-sm font-medium">Warning: This action cannot be undone.</p>
+                        <p className="text-sm font-medium">Advertencia: Esta acción no se puede deshacer.</p>
                     </div>
 
                     <p className="text-gray-600 dark:text-gray-300">
-                        Are you sure you want to permanently delete this ticket? All associated comments, expenses, and attachments will be removed.
+                        ¿Está seguro de que desea eliminar permanentemente este ticket? Se eliminarán todos los comentarios, gastos y archivos adjuntos asociados.
                     </p>
 
                     <div className="flex justify-end gap-3 pt-4">
@@ -64,7 +64,7 @@ export function DeleteTicketButton({ ticketId, className }: DeleteTicketButtonPr
                             onClick={() => setIsModalOpen(false)}
                             disabled={isLoading}
                         >
-                            Cancel
+                            Cancelar
                         </Button>
                         <Button
                             variant="destructive"
@@ -74,10 +74,10 @@ export function DeleteTicketButton({ ticketId, className }: DeleteTicketButtonPr
                             {isLoading ? (
                                 <>
                                     <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                                    Deleting...
+                                    Eliminando...
                                 </>
                             ) : (
-                                'Delete Ticket'
+                                'Eliminar Ticket'
                             )}
                         </Button>
                     </div>

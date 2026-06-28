@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { Database } from '@/types/database'
 import { assignTicket } from '@/actions/tickets'
 import { toast } from 'sonner'
+import { ROLE_LABELS } from '@/lib/role-permissions'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '../ui/dropdown-menu'
 
 import { cn } from '@/lib/utils'
@@ -30,7 +31,7 @@ export function InlineAssigneeSelect({ ticketId, assignedTo, staff, canEdit }: I
                         <span>{assignedTo.full_name}</span>
                     </>
                 ) : (
-                    <span className="text-gray-500 italic">Unassigned</span>
+                    <span className="text-gray-500 italic">Sin asignar</span>
                 )}
             </div>
         )
@@ -45,10 +46,10 @@ export function InlineAssigneeSelect({ ticketId, assignedTo, staff, canEdit }: I
             if (result.error) {
                 toast.error(result.error)
             } else {
-                toast.success('Assignee updated')
+                toast.success('Asignado actualizado')
             }
         } catch (error) {
-            toast.error('Failed to update assignee')
+            toast.error('Error al actualizar asignado')
         } finally {
             setIsUpdating(false)
         }
@@ -72,14 +73,14 @@ export function InlineAssigneeSelect({ ticketId, assignedTo, staff, canEdit }: I
                             <div className="w-6 h-6 rounded-full border border-dashed border-gray-300 dark:border-gray-600 flex items-center justify-center mr-2">
                                 <UserPlus className="w-3 h-3" />
                             </div>
-                            <span className="text-sm italic group-hover:underline decoration-dashed underline-offset-4">Assign</span>
+                            <span className="text-sm italic group-hover:underline decoration-dashed underline-offset-4">Asignar</span>
                         </div>
                     )}
                 </div>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="start" className="max-h-[300px] overflow-y-auto">
                 <DropdownMenuItem onClick={() => handleAssign(null)} className="cursor-pointer text-red-600 focus:text-red-700">
-                    Unassign
+                    Desasignar
                 </DropdownMenuItem>
                 {staff.map((user) => (
                     <DropdownMenuItem
@@ -88,7 +89,7 @@ export function InlineAssigneeSelect({ ticketId, assignedTo, staff, canEdit }: I
                         className="cursor-pointer"
                     >
                         {user.full_name}
-                        <span className="ml-2 text-xs text-gray-500">({user.role})</span>
+                        <span className="ml-2 text-xs text-gray-500">({ROLE_LABELS[user.role as keyof typeof ROLE_LABELS] || user.role})</span>
                     </DropdownMenuItem>
                 ))}
             </DropdownMenuContent>

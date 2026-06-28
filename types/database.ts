@@ -15,6 +15,7 @@ export type Database = {
                     full_name: string
                     role: 'reporter' | 'maintenance' | 'housekeeper' | 'sub_director' | 'admin'
                     telegram_chat_id: string | null
+                    sub_role: 'handyman' | 'ac-specialist' | null
                     created_at: string
                     updated_at: string
                 }
@@ -23,6 +24,7 @@ export type Database = {
                     full_name: string
                     role?: 'reporter' | 'maintenance' | 'housekeeper' | 'sub_director' | 'admin'
                     telegram_chat_id?: string | null
+                    sub_role?: 'handyman' | 'ac-specialist' | null
                     created_at?: string
                     updated_at?: string
                 }
@@ -31,6 +33,7 @@ export type Database = {
                     full_name?: string
                     role?: 'reporter' | 'maintenance' | 'housekeeper' | 'sub_director' | 'admin'
                     telegram_chat_id?: string | null
+                    sub_role?: 'handyman' | 'ac-specialist' | null
                     created_at?: string
                     updated_at?: string
                 }

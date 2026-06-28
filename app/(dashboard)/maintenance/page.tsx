@@ -45,7 +45,7 @@ export default async function MaintenancePage() {
         return (
             <div className="p-4">
                 <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm">
-                    Error loading tasks: {error.message}
+                    Error al cargar tareas: {error.message}
                 </div>
             </div>
         )
@@ -57,10 +57,10 @@ export default async function MaintenancePage() {
                 <div className="mb-6 flex items-center justify-between">
                     <div>
                         <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
-                            My Tasks
+                            Mis Tareas
                         </h1>
                         <p className="text-gray-600 dark:text-gray-400 mt-1 text-sm">
-                            Tickets currently assigned to you.
+                            Tickets asignados actualmente a usted.
                         </p>
                     </div>
                     <CleaningLogoutButton />
@@ -71,8 +71,8 @@ export default async function MaintenancePage() {
                         <div className="w-12 h-12 bg-gray-100 dark:bg-gray-700 rounded-full flex items-center justify-center mx-auto mb-3">
                             <span className="text-2xl">🎉</span>
                         </div>
-                        <h3 className="text-gray-900 dark:text-white font-medium mb-1">All caught up!</h3>
-                        <p className="text-gray-500 dark:text-gray-400 text-sm">You have no active tasks assigned right now.</p>
+                        <h3 className="text-gray-900 dark:text-white font-medium mb-1">¡Todo al día!</h3>
+                        <p className="text-gray-500 dark:text-gray-400 text-sm">No tiene tareas activas asignadas en este momento.</p>
                     </div>
                 ) : (
                     <div className="space-y-4">

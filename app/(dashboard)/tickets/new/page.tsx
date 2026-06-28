@@ -103,7 +103,7 @@ export default function NewTicketPage() {
         setLoading(true)
 
         if (!formData.category) {
-            toast.error('Please select a category')
+            toast.error('Por favor, seleccione una categoría')
             setLoading(false)
             return
         }
@@ -130,7 +130,7 @@ export default function NewTicketPage() {
             toast.error(result.error)
             setLoading(false)
         } else {
-            toast.success('Ticket created successfully!')
+            toast.success('¡Ticket creado con éxito!')
             router.push(`/tickets/${(result.data as any)!.id}`)
         }
     }
@@ -150,6 +150,13 @@ export default function NewTicketPage() {
         )
     }
 
+    const priorityLabels = {
+        low: 'Baja',
+        medium: 'Media',
+        high: 'Alta',
+        urgent: 'Urgente'
+    }
+
     // Maintenance User View (Mobile First Wizard)
     if (userRole === 'maintenance') {
         return (
@@ -157,10 +164,10 @@ export default function NewTicketPage() {
                 <div className="mb-6">
                     <div className="flex items-center justify-between">
                         <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
-                            New Ticket
+                            Nuevo Ticket
                         </h1>
                         <Button variant="ghost" size="sm" onClick={() => step > 1 ? setStep((step - 1) as 1 | 2) : router.push('/maintenance')}>
-                            Back
+                            Atrás
                         </Button>
                     </div>
                 </div>
@@ -171,7 +178,7 @@ export default function NewTicketPage() {
                             <div className="space-y-4">
                                 <div>
                                     <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
-                                        Property *
+                                        Propiedad *
                                     </label>
                                     <select
                                         required
@@ -179,7 +186,7 @@ export default function NewTicketPage() {
                                         onChange={(e) => setFormData({ ...formData, property_id: e.target.value, unit_id: '' })}
                                         className="w-full p-4 text-lg bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none transition-all"
                                     >
-                                        <option value="">Select Property...</option>
+                                        <option value="">Seleccionar Propiedad...</option>
                                         {properties.map((prop) => (
                                             <option key={prop.id} value={prop.id}>
                                                 {prop.name}
@@ -190,7 +197,7 @@ export default function NewTicketPage() {
 
                                 <div>
                                     <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
-                                        Unit (optional)
+                                        Unidad (opcional)
                                     </label>
                                     <select
                                         value={formData.unit_id}
@@ -198,7 +205,7 @@ export default function NewTicketPage() {
                                         className="w-full p-4 text-lg bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none transition-all disabled:opacity-50"
                                         disabled={!formData.property_id}
                                     >
-                                        <option value="">Select Unit...</option>
+                                        <option value="">Seleccionar Unidad...</option>
                                         {units.map((unit) => (
                                             <option key={unit.id} value={unit.id}>
                                                 {unit.name}
@@ -213,7 +220,7 @@ export default function NewTicketPage() {
                                 onClick={() => setStep(2)}
                                 disabled={!formData.property_id}
                             >
-                                Next Step
+                                Siguiente Paso
                             </Button>
                         </div>
                     )}
@@ -222,7 +229,7 @@ export default function NewTicketPage() {
                         <div className="space-y-6 animate-in fade-in slide-in-from-right-4">
                             <div>
                                 <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">
-                                    What seems to be the issue?
+                                    ¿Cuál parece ser el problema?
                                 </label>
                                 <div className="grid grid-cols-2 gap-3">
                                     {categories.map((category) => {
@@ -258,7 +265,7 @@ export default function NewTicketPage() {
                                 onClick={() => setStep(3)}
                                 disabled={!formData.category}
                             >
-                                Continue to Details
+                                Continuar a los Detalles
                             </Button>
                         </div>
                     )}
@@ -267,21 +274,21 @@ export default function NewTicketPage() {
                         <form onSubmit={handleSubmit} className="space-y-6 animate-in fade-in slide-in-from-right-4">
                             <div>
                                 <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
-                                    Description *
+                                    Descripción *
                                 </label>
                                 <textarea
                                     required
                                     value={formData.description}
                                     onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                                     rows={4}
-                                    placeholder="Explain the issue..."
+                                    placeholder="Explique el problema..."
                                     className="w-full p-4 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none transition-all resize-none text-lg"
                                 />
                             </div>
 
                             <div>
                                 <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
-                                    Photos / Videos
+                                    Fotos / Videos
                                 </label>
                                 <div className="flex flex-wrap gap-2 items-center">
                                     {formData.attachments.map((att, i) => (
@@ -303,7 +310,7 @@ export default function NewTicketPage() {
                                     <FileUploadButton
                                         onUploadComplete={handleUploadComplete}
                                         variant="outline"
-                                        label="Camera"
+                                        label="Cámara"
                                         capture
                                         accept="image/*"
                                         className="h-20 w-20 rounded-xl border-dashed bg-gray-50 flex flex-col items-center justify-center gap-1 text-gray-700 hover:bg-gray-100 hover:text-gray-900"
@@ -311,7 +318,7 @@ export default function NewTicketPage() {
                                     <FileUploadButton
                                         onUploadComplete={handleUploadComplete}
                                         variant="outline"
-                                        label="Gallery"
+                                        label="Galería"
                                         className="h-20 w-20 rounded-xl border-dashed bg-gray-50 flex flex-col items-center justify-center gap-1 text-gray-700 hover:bg-gray-100 hover:text-gray-900"
                                     />
                                 </div>
@@ -323,7 +330,7 @@ export default function NewTicketPage() {
                                 size="lg"
                                 disabled={loading || !formData.description}
                             >
-                                {loading ? 'Submitting...' : 'Submit Final Ticket'}
+                                {loading ? 'Enviando...' : 'Enviar Ticket Final'}
                             </Button>
                         </form>
                     )}
@@ -337,10 +344,10 @@ export default function NewTicketPage() {
         <div className="p-6 max-w-4xl mx-auto">
             <div className="mb-6">
                 <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
-                    Create New Ticket
+                    Crear Nuevo Ticket
                 </h1>
                 <p className="text-gray-600 dark:text-gray-400 mt-1">
-                    Report a maintenance issue or damage (target: &lt;30 seconds)
+                    Reportar un problema de mantenimiento o daño
                 </p>
             </div>
 
@@ -349,7 +356,7 @@ export default function NewTicketPage() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                         <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                            Property *
+                            Propiedad *
                         </label>
                         <select
                             required
@@ -357,7 +364,7 @@ export default function NewTicketPage() {
                             onChange={(e) => setFormData({ ...formData, property_id: e.target.value, unit_id: '' })}
                             className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md dark:bg-gray-700 dark:text-white"
                         >
-                            <option value="">Select property...</option>
+                            <option value="">Seleccionar propiedad...</option>
                             {properties.map((prop) => (
                                 <option key={prop.id} value={prop.id}>
                                     {prop.name}
@@ -368,7 +375,7 @@ export default function NewTicketPage() {
 
                     <div>
                         <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                            Unit (optional)
+                            Unidad (opcional)
                         </label>
                         <select
                             value={formData.unit_id}
@@ -376,7 +383,7 @@ export default function NewTicketPage() {
                             className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md dark:bg-gray-700 dark:text-white"
                             disabled={!formData.property_id}
                         >
-                            <option value="">Select unit...</option>
+                            <option value="">Seleccionar unidad...</option>
                             {units.map((unit) => (
                                 <option key={unit.id} value={unit.id}>
                                     {unit.name}
@@ -390,7 +397,7 @@ export default function NewTicketPage() {
                 {userRole !== 'maintenance' && (
                     <div>
                         <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                            Type *
+                            Tipo *
                         </label>
                         <div className="flex gap-4">
                             <label className="flex items-center">
@@ -401,7 +408,7 @@ export default function NewTicketPage() {
                                     onChange={(e) => setFormData({ ...formData, type: e.target.value as any })}
                                     className="mr-2"
                                 />
-                                <span className="text-sm text-gray-700 dark:text-gray-300">Corrective (urgent issue)</span>
+                                <span className="text-sm text-gray-700 dark:text-gray-300">Correctivo (problema urgente)</span>
                             </label>
                             <label className="flex items-center">
                                 <input
@@ -411,7 +418,7 @@ export default function NewTicketPage() {
                                     onChange={(e) => setFormData({ ...formData, type: e.target.value as any })}
                                     className="mr-2"
                                 />
-                                <span className="text-sm text-gray-700 dark:text-gray-300">Preventive (scheduled)</span>
+                                <span className="text-sm text-gray-700 dark:text-gray-300">Preventivo (programado)</span>
                             </label>
                         </div>
                     </div>
@@ -420,7 +427,7 @@ export default function NewTicketPage() {
                 {/* Category - Icon Grid */}
                 <div>
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
-                        Category *
+                        Categoría *
                     </label>
                     <div className="grid grid-cols-3 md:grid-cols-5 gap-3">
                         {categories.map((category) => {
@@ -454,14 +461,14 @@ export default function NewTicketPage() {
                 {/* Description */}
                 <div>
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                        Description * (1-2 lines)
+                        Descripción * (1-2 líneas)
                     </label>
                     <textarea
                         required
                         value={formData.description}
                         onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                         rows={3}
-                        placeholder="Briefly describe the issue..."
+                        placeholder="Describa brevemente el problema..."
                         className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md dark:bg-gray-700 dark:text-white"
                     />
                 </div>
@@ -469,14 +476,14 @@ export default function NewTicketPage() {
                 {/* Initial Comment */}
                 <div>
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                        Initial Comment & Evidence (optional)
+                        Comentario Inicial y Evidencia (opcional)
                     </label>
                     <div className="space-y-3">
                         <textarea
                             value={formData.initial_comment}
                             onChange={(e) => setFormData({ ...formData, initial_comment: e.target.value })}
                             rows={2}
-                            placeholder="Add any additional details or notes..."
+                            placeholder="Agregue detalles o notas adicionales..."
                             className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md dark:bg-gray-700 dark:text-white"
                         />
 
@@ -485,7 +492,7 @@ export default function NewTicketPage() {
                                 onUploadComplete={handleUploadComplete}
                                 variant="outline"
                                 size="sm"
-                                label="Camera"
+                                label="Cámara"
                                 capture
                                 accept="image/*"
                             />
@@ -493,7 +500,7 @@ export default function NewTicketPage() {
                                 onUploadComplete={handleUploadComplete}
                                 variant="outline"
                                 size="sm"
-                                label="Gallery"
+                                label="Galería"
                             />
                             {formData.attachments.map((att, i) => (
                                 <div key={i} className="relative group w-16 h-16 border rounded bg-gray-100 overflow-hidden">
@@ -518,7 +525,7 @@ export default function NewTicketPage() {
                 {/* Priority */}
                 <div>
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                        Priority *
+                        Prioridad *
                     </label>
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                         {(['low', 'medium', 'high', 'urgent'] as const).map((priority) => {
@@ -543,7 +550,7 @@ export default function NewTicketPage() {
                                         }
                   `}
                                 >
-                                    {priority}
+                                    {priorityLabels[priority]}
                                 </button>
                             )
                         })}
@@ -556,7 +563,7 @@ export default function NewTicketPage() {
                 {/* Submit */}
                 <div className="flex gap-3">
                     <Button type="submit" size="lg" disabled={loading} className="flex-1">
-                        {loading ? 'Creating...' : 'Create Ticket'}
+                        {loading ? 'Creando...' : 'Crear Ticket'}
                     </Button>
                     <Button
                         type="button"
@@ -564,7 +571,7 @@ export default function NewTicketPage() {
                         size="lg"
                         onClick={() => router.back()}
                     >
-                        Cancel
+                        Cancelar
                     </Button>
                 </div>
             </form>

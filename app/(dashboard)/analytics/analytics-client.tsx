@@ -32,6 +32,29 @@ interface AnalyticsClientProps {
 const COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6']
 const PRIORITY_COLORS = { low: '#10b981', medium: '#f59e0b', high: '#ef4444', urgent: '#7f1d1d' }
 
+const priorityTranslations: Record<string, string> = {
+    low: 'Baja',
+    medium: 'Media',
+    high: 'Alta',
+    urgent: 'Urgente'
+}
+
+const statusTranslations: Record<string, string> = {
+    reported: 'Reportado',
+    assigned: 'Asignado',
+    in_progress: 'En Progreso',
+    resolved: 'Resuelto',
+    closed: 'Cerrado'
+}
+
+const roleTranslations: Record<string, string> = {
+    reporter: 'Reportero',
+    maintenance: 'Mantenimiento',
+    housekeeper: 'Camarera / Limpieza',
+    sub_director: 'Subdirector',
+    admin: 'Administrador'
+}
+
 export default function AnalyticsClient({ tickets, activeBlocks, profiles }: AnalyticsClientProps) {
     const router = useRouter()
     const searchParams = useSearchParams()
@@ -154,10 +177,17 @@ export default function AnalyticsClient({ tickets, activeBlocks, profiles }: Ana
         const compRate = tickets.length > 0 ? ((resolvedCount / tickets.length) * 100).toFixed(1) : '0'
 
         // Formatting for charts
-        const sData = Object.entries(statusMap).map(([name, value]) => ({ name, value }))
-        const pData = Object.entries(priorityMap).map(([name, value]) => ({ name, value }))
+        const sData = Object.entries(statusMap).map(([name, value]) => ({
+            name: statusTranslations[name] || name,
+            value
+        }))
+        const pData = Object.entries(priorityMap).map(([name, value]) => ({
+            name: priorityTranslations[name] || name,
+            originalName: name,
+            value
+        }))
         const bData = Object.entries(bottleneckMap).map(([name, data]) => ({
-            name,
+            name: statusTranslations[name] || name,
             avgDays: Number((data.totalDays / data.count).toFixed(1))
         }))
 
@@ -192,16 +222,16 @@ export default function AnalyticsClient({ tickets, activeBlocks, profiles }: Ana
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 bg-white dark:bg-gray-800 p-4 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
                 <div className="flex flex-wrap gap-2">
                     <Button variant={!fromParam && !toParam ? "default" : "outline"} onClick={() => handlePreset(null)} size="sm">
-                        All Time
+                        Todo el Tiempo
                     </Button>
                     <Button variant={fromParam && !toParam && new Date().getTime() - new Date(fromParam).getTime() < 8 * 24 * 60 * 60 * 1000 ? "default" : "outline"} onClick={() => handlePreset(7)} size="sm">
-                        7 Days
+                        7 Días
                     </Button>
                     <Button variant={fromParam && !toParam && new Date().getTime() - new Date(fromParam).getTime() < 16 * 24 * 60 * 60 * 1000 && new Date().getTime() - new Date(fromParam).getTime() > 8 * 24 * 60 * 60 * 1000 ? "default" : "outline"} onClick={() => handlePreset(15)} size="sm">
-                        15 Days
+                        15 Días
                     </Button>
                     <Button variant={fromParam && !toParam && new Date().getTime() - new Date(fromParam).getTime() > 16 * 24 * 60 * 60 * 1000 ? "default" : "outline"} onClick={() => handlePreset(30)} size="sm">
-                        30 Days
+                        30 Días
                     </Button>
                 </div>
 
@@ -226,7 +256,7 @@ export default function AnalyticsClient({ tickets, activeBlocks, profiles }: Ana
                                         format(dateRange.from, "LLL dd, y")
                                     )
                                 ) : (
-                                    <span>Pick a custom range</span>
+                                    <span>Seleccionar un rango</span>
                                 )}
                             </Button>
                         </PopoverTrigger>
@@ -248,32 +278,32 @@ export default function AnalyticsClient({ tickets, activeBlocks, profiles }: Ana
             <div className="grid gap-4 md:grid-cols-3">
                 <Card>
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium">Total Spending</CardTitle>
+                        <CardTitle className="text-sm font-medium">Gasto Total</CardTitle>
                         <DollarSign className="h-4 w-4 text-gray-500" />
                     </CardHeader>
                     <CardContent>
                         <div className="text-2xl font-bold">${totalSpending.toFixed(2)}</div>
-                        <p className="text-xs text-gray-500 mt-1">Based on closed/costed tickets</p>
+                        <p className="text-xs text-gray-500 mt-1">Basado en tickets cerrados y valorados</p>
                     </CardContent>
                 </Card>
                 <Card>
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium">Avg Resolution Time</CardTitle>
+                        <CardTitle className="text-sm font-medium">Tiempo Promedio de Resolución</CardTitle>
                         <Clock className="h-4 w-4 text-gray-500" />
                     </CardHeader>
                     <CardContent>
-                        <div className="text-2xl font-bold">{avgResolutionTimeDays} days</div>
-                        <p className="text-xs text-gray-500 mt-1">From creation to resolution</p>
+                        <div className="text-2xl font-bold">{avgResolutionTimeDays} días</div>
+                        <p className="text-xs text-gray-500 mt-1">Desde la creación hasta la resolución</p>
                     </CardContent>
                 </Card>
                 <Card>
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium">Compliance Rate</CardTitle>
+                        <CardTitle className="text-sm font-medium">Tasa de Cumplimiento</CardTitle>
                         <CheckCircle2 className="h-4 w-4 text-gray-500" />
                     </CardHeader>
                     <CardContent>
                         <div className="text-2xl font-bold">{complianceRate}%</div>
-                        <p className="text-xs text-gray-500 mt-1">Tickets resolved this period</p>
+                        <p className="text-xs text-gray-500 mt-1">Tickets resueltos en este período</p>
                     </CardContent>
                 </Card>
             </div>
@@ -282,7 +312,7 @@ export default function AnalyticsClient({ tickets, activeBlocks, profiles }: Ana
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
                 <Card className="col-span-1 border-gray-200 dark:border-gray-800">
                     <CardHeader>
-                        <CardTitle className="text-sm font-medium">Tickets by Priority</CardTitle>
+                        <CardTitle className="text-sm font-medium">Tickets por Prioridad</CardTitle>
                     </CardHeader>
                     <CardContent className="h-[300px]">
                         <ResponsiveContainer width="100%" height="100%">
@@ -297,7 +327,7 @@ export default function AnalyticsClient({ tickets, activeBlocks, profiles }: Ana
                                     dataKey="value"
                                 >
                                     {priorityData.map((entry, index) => (
-                                        <Cell key={`cell-${index}`} fill={(PRIORITY_COLORS as any)[entry.name] || COLORS[index % COLORS.length]} />
+                                        <Cell key={`cell-${index}`} fill={(PRIORITY_COLORS as any)[(entry as any).originalName] || COLORS[index % COLORS.length]} />
                                     ))}
                                 </Pie>
                                 <Tooltip />
@@ -309,8 +339,8 @@ export default function AnalyticsClient({ tickets, activeBlocks, profiles }: Ana
 
                 <Card className="col-span-1 lg:col-span-2 border-gray-200 dark:border-gray-800">
                     <CardHeader>
-                        <CardTitle className="text-sm font-medium">Bottlenecks (Avg Days Open by Status)</CardTitle>
-                        <CardDescription>How long active tickets have been sitting in current statuses.</CardDescription>
+                        <CardTitle className="text-sm font-medium">Cuellos de Botella (Días Promedio Abierto por Estado)</CardTitle>
+                        <CardDescription>Cuánto tiempo han permanecido los tickets activos en sus estados actuales.</CardDescription>
                     </CardHeader>
                     <CardContent className="h-[300px]">
                         <ResponsiveContainer width="100%" height="100%">
@@ -330,24 +360,24 @@ export default function AnalyticsClient({ tickets, activeBlocks, profiles }: Ana
                 <CardHeader className="bg-red-50 dark:bg-red-900/20">
                     <div className="flex items-center gap-2">
                         <AlertTriangle className="h-5 w-5 text-red-600 dark:text-red-400" />
-                        <CardTitle className="text-sm font-medium text-red-900 dark:text-red-100">Blockage Monitor</CardTitle>
+                        <CardTitle className="text-sm font-medium text-red-900 dark:text-red-100">Monitor de Bloqueos</CardTitle>
                     </div>
                     <CardDescription className="text-red-800/70 dark:text-red-200/70">
-                        Properties/Units currently blocked from sale due to maintenance.
+                        Propiedades/Unidades actualmente bloqueadas para la venta debido a mantenimiento.
                     </CardDescription>
                 </CardHeader>
                 <CardContent className="pt-4">
                     {activeBlocks.length === 0 ? (
-                        <p className="text-sm text-gray-500 text-center py-4">No units are currently blocked. Good job!</p>
+                        <p className="text-sm text-gray-500 text-center py-4">No hay unidades bloqueadas actualmente. ¡Buen trabajo!</p>
                     ) : (
                         <div className="overflow-x-auto">
                             <table className="w-full text-sm text-left">
                                 <thead className="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-800 dark:text-gray-400">
                                     <tr>
-                                        <th className="px-4 py-3 rounded-tl-lg">Property/Unit</th>
-                                        <th className="px-4 py-3">Reason</th>
-                                        <th className="px-4 py-3">Blocked By</th>
-                                        <th className="px-4 py-3 rounded-tr-lg">Duration</th>
+                                        <th className="px-4 py-3 rounded-tl-lg">Propiedad / Unidad</th>
+                                        <th className="px-4 py-3">Motivo</th>
+                                        <th className="px-4 py-3">Bloqueado Por</th>
+                                        <th className="px-4 py-3 rounded-tr-lg">Duración</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -374,17 +404,17 @@ export default function AnalyticsClient({ tickets, activeBlocks, profiles }: Ana
             <Card className="border-gray-200 dark:border-gray-800">
                 <CardHeader className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                     <div>
-                        <CardTitle className="text-sm font-medium">Employee Performance Summary</CardTitle>
-                        <CardDescription>Tickets created and resolved per user spanning the selected period.</CardDescription>
+                        <CardTitle className="text-sm font-medium">Resumen de Rendimiento de Empleados</CardTitle>
+                        <CardDescription>Tickets creados y resueltos por usuario durante el período seleccionado.</CardDescription>
                     </div>
                     <select
                         className="p-2 text-sm border border-gray-300 dark:border-gray-700 rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
                         value={roleFilter}
                         onChange={(e) => setRoleFilter(e.target.value)}
                     >
-                        <option value="all">All Roles</option>
+                        <option value="all">Todos los Roles</option>
                         {availableRoles.map(r => (
-                            <option key={r} value={r}>{r.replace('_', ' ')}</option>
+                            <option key={r} value={r}>{roleTranslations[r] || r.replace('_', ' ')}</option>
                         ))}
                     </select>
                 </CardHeader>
@@ -393,10 +423,10 @@ export default function AnalyticsClient({ tickets, activeBlocks, profiles }: Ana
                         <table className="w-full text-sm text-left">
                             <thead className="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-800 dark:text-gray-400">
                                 <tr>
-                                    <th className="px-4 py-3 rounded-tl-lg">Employee</th>
-                                    <th className="px-4 py-3">Role</th>
-                                    <th className="px-4 py-3 text-center">Tickets Created</th>
-                                    <th className="px-4 py-3 text-center rounded-tr-lg">Tickets Resolved</th>
+                                    <th className="px-4 py-3 rounded-tl-lg">Empleado</th>
+                                    <th className="px-4 py-3">Rol</th>
+                                    <th className="px-4 py-3 text-center">Tickets Creados</th>
+                                    <th className="px-4 py-3 text-center rounded-tr-lg">Tickets Resueltos</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -405,7 +435,7 @@ export default function AnalyticsClient({ tickets, activeBlocks, profiles }: Ana
                                         <td className="px-4 py-3 font-medium text-gray-900 dark:text-white">
                                             {emp.name}
                                         </td>
-                                        <td className="px-4 py-3 text-gray-500 capitalize">{emp.role.replace('_', ' ')}</td>
+                                        <td className="px-4 py-3 text-gray-500 capitalize">{roleTranslations[emp.role] || emp.role.replace('_', ' ')}</td>
                                         <td className="px-4 py-3 text-center">{emp.created}</td>
                                         <td className="px-4 py-3 text-center font-semibold text-green-600 dark:text-green-400">{emp.resolved}</td>
                                     </tr>

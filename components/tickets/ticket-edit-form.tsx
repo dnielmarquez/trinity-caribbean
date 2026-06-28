@@ -9,6 +9,7 @@ import { updateTicket } from '@/actions/tickets'
 import { toast } from 'sonner'
 import { CATEGORIES, STATUSES, PRIORITIES } from '@/lib/categories'
 import type { Database } from '@/types/database'
+import { ROLE_LABELS } from '@/lib/role-permissions'
 
 type Ticket = Database['public']['Tables']['tickets']['Row']
 type Profile = Database['public']['Tables']['profiles']['Row']
@@ -49,17 +50,17 @@ export function TicketEditForm({ ticket, staff, isOpen, onClose }: TicketEditFor
         if (error) {
             toast.error(error)
         } else {
-            toast.success('Ticket updated successfully')
+            toast.success('Ticket actualizado con éxito')
             onClose()
         }
     }
 
     return (
-        <Modal isOpen={isOpen} onClose={onClose} title="Edit Ticket">
+        <Modal isOpen={isOpen} onClose={onClose} title="Editar Ticket">
             <form onSubmit={handleSubmit} className="space-y-4">
                 {/* Description */}
                 <div className="space-y-2">
-                    <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Description</label>
+                    <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Descripción</label>
                     <textarea
                         className="w-full px-3 py-2 bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-700 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 dark:text-white min-h-[100px]"
                         value={description}
@@ -71,7 +72,7 @@ export function TicketEditForm({ ticket, staff, isOpen, onClose }: TicketEditFor
                 <div className="grid grid-cols-2 gap-4">
                     {/* Status */}
                     <div className="space-y-2">
-                        <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Status</label>
+                        <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Estado</label>
                         <select
                             className="w-full px-3 py-2 bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-700 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 dark:text-white"
                             value={status}
@@ -86,7 +87,7 @@ export function TicketEditForm({ ticket, staff, isOpen, onClose }: TicketEditFor
 
                     {/* Priority */}
                     <div className="space-y-2">
-                        <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Priority</label>
+                        <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Prioridad</label>
                         <select
                             className="w-full px-3 py-2 bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-700 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 dark:text-white"
                             value={priority}
@@ -103,7 +104,7 @@ export function TicketEditForm({ ticket, staff, isOpen, onClose }: TicketEditFor
                 <div className="grid grid-cols-2 gap-4">
                     {/* Category */}
                     <div className="space-y-2">
-                        <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Category</label>
+                        <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Categoría</label>
                         <select
                             className="w-full px-3 py-2 bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-700 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 dark:text-white"
                             value={category}
@@ -118,27 +119,25 @@ export function TicketEditForm({ ticket, staff, isOpen, onClose }: TicketEditFor
 
                     {/* Assignment */}
                     <div className="space-y-2">
-                        <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Assign To</label>
+                        <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Asignar A</label>
                         <select
                             className="w-full px-3 py-2 bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-700 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 dark:text-white"
                             value={assignedTo}
                             onChange={(e) => setAssignedTo(e.target.value)}
                         >
-                            <option value="">Unassigned</option>
+                            <option value="">Sin asignar</option>
                             {staff.map((p) => (
                                 <option key={p.id} value={p.id}>
-                                    {p.full_name} ({p.role.replace('_', ' ')})
+                                    {p.full_name} ({ROLE_LABELS[p.role] || p.role})
                                 </option>
                             ))}
                         </select>
                     </div>
                 </div>
 
-
-
                 <div className="flex justify-end gap-3 pt-4 border-t border-gray-200 dark:border-gray-700">
                     <Button type="button" variant="outline" onClick={onClose} disabled={isLoading}>
-                        Cancel
+                        Cancelar
                     </Button>
                     <Button type="submit" disabled={isLoading}>
                         {isLoading ? (
@@ -146,7 +145,7 @@ export function TicketEditForm({ ticket, staff, isOpen, onClose }: TicketEditFor
                         ) : (
                             <Save className="w-4 h-4 mr-2" />
                         )}
-                        Save Changes
+                        Guardar Cambios
                     </Button>
                 </div>
             </form>
