@@ -90,6 +90,28 @@ export async function GET(request: Request) {
             }
         })
 
+        // Group active tickets by assigned user
+        const usersWithTicketsMap = new Map<string, any>()
+        enrichedTickets?.forEach(ticket => {
+            if (ticket.assigned_to_user_id) {
+                const assignedUser = profilesMap.get(ticket.assigned_to_user_id)
+                if (assignedUser) {
+                    if (!usersWithTicketsMap.has(ticket.assigned_to_user_id)) {
+                        usersWithTicketsMap.set(ticket.assigned_to_user_id, {
+                            id: assignedUser.id,
+                            full_name: assignedUser.full_name,
+                            role: assignedUser.role,
+                            telegram_chat_id: assignedUser.telegram_chat_id,
+                            tickets: []
+                        })
+                    }
+                    usersWithTicketsMap.get(ticket.assigned_to_user_id).tickets.push(ticket)
+                }
+            }
+        })
+
+        const usersWithTickets = Array.from(usersWithTicketsMap.values())
+
         // Extract global roles (first match)
         const subDirector = (profiles as any[])?.find(p => p.role === 'sub_director')
         const housekeeper = (profiles as any[])?.find(p => p.role === 'housekeeper')
@@ -99,6 +121,9 @@ export async function GET(request: Request) {
             success: true,
             count: enrichedTickets?.length || 0,
             data: enrichedTickets,
+            tickets: enrichedTickets,
+            users: usersWithTickets,
+            users_with_tickets: usersWithTickets,
             sub_director_telegram_chat_id: subDirector?.telegram_chat_id || null,
             housekeeper_telegram_chat_id: housekeeper?.telegram_chat_id || null,
             admin_telegram_chat_id: admin?.telegram_chat_id || null
