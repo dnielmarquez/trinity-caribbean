@@ -4,7 +4,7 @@ import { createClient } from '@/lib/supabase/server'
 import { getCurrentUser } from '@/lib/rbac'
 import { revalidatePath } from 'next/cache'
 import { z } from 'zod'
-import { sendTicketCreatedNotification, sendUrgentTicketNotification } from '@/lib/notifications'
+import { sendTicketCreatedNotification, sendUrgentTicketNotification, sendTicketAssignedNotification } from '@/lib/notifications'
 
 const createTicketSchema = z.object({
     property_id: z.string().uuid(),
@@ -38,6 +38,21 @@ export async function createTicket(data: z.infer<typeof createTicketSchema>) {
     const role = (user.profile as any)?.role
     const isMaintenance = role === 'maintenance'
 
+    // Determine target subrole based on category: "ac" -> "ac-specialist", others -> "handyman"
+    const targetSubrole = validated.data.category === 'ac' ? 'ac-specialist' : 'handyman'
+
+    // Find profile matching role 'maintenance' and target subrole
+    const { data: assigneeProfile } = await (supabase
+        .from('profiles') as any)
+        .select('id, full_name, role, telegram_chat_id')
+        .eq('role', 'maintenance')
+        .eq('sub_role', targetSubrole)
+        .limit(1)
+        .maybeSingle()
+
+    const assigned_to_user_id = assigneeProfile?.id || (isMaintenance ? user.id : null)
+    const status = assigned_to_user_id ? 'assigned' : 'reported'
+
     const { data: ticket, error } = await supabase
         .from('tickets')
         .insert({
@@ -48,8 +63,8 @@ export async function createTicket(data: z.infer<typeof createTicketSchema>) {
             unit_id: validated.data.unit_id || null,
             created_by: user.id,
             requires_spend: validated.data.requires_spend || false,
-            assigned_to_user_id: isMaintenance ? user.id : null,
-            status: isMaintenance ? 'assigned' : 'reported',
+            assigned_to_user_id,
+            status,
         } as any) // Type assertion to bypass type inference issue
         .select()
         .single()
@@ -65,11 +80,55 @@ export async function createTicket(data: z.infer<typeof createTicketSchema>) {
         actor_id: user.id,
         action: 'created',
         from_value: null,
-        to_value: { status: isMaintenance ? 'assigned' : 'reported' },
+        to_value: {
+            status,
+            assigned_to_user_id,
+            assigned_to_name: assigneeProfile ? assigneeProfile.full_name : (isMaintenance ? (user as any).profile?.full_name : null)
+        },
     } as any)
 
     if ((ticket as any).priority === 'urgent') {
         await sendUrgentTicketNotification(ticket as any)
+    }
+
+    // Send assignment notification if assigned
+    if (assigned_to_user_id) {
+        const targetProfile = assigneeProfile || (isMaintenance ? (user as any).profile : null)
+        if (targetProfile) {
+            try {
+                await sendTicketAssignedNotification(ticket as any, targetProfile as any)
+            } catch (err) {
+                console.error('Failed to send ticket assigned notification:', err)
+            }
+        }
+    }
+
+    // Webhook for Ticket Assignment (All priorities)
+    if (assigned_to_user_id) {
+        try {
+            const assigneeTelegramChatId = assigneeProfile?.telegram_chat_id || (isMaintenance ? (user as any).profile?.telegram_chat_id : null)
+            if (assigneeTelegramChatId) {
+                const webhookUrl = process.env.N8N_TICKET_ASSIGNED_WEBHOOK_URL
+                if (webhookUrl) {
+                    const payload = {
+                        ticket_id: (ticket as any).id,
+                        assigned_by: (user as any).profile?.full_name || 'System',
+                        category: (ticket as any).category,
+                        description: (ticket as any).description,
+                        user_telegram_chat_id: assigneeTelegramChatId,
+                        user_id: assigned_to_user_id,
+                        priority: (ticket as any).priority
+                    }
+                    await fetch(webhookUrl, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    })
+                }
+            }
+        } catch (err) {
+            console.error('Failed to trigger assigned webhook:', err)
+        }
     }
 
     // Webhook for Ticket Creation (All priorities)
